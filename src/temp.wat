@@ -164,6 +164,7 @@
     call $log
   )
   
+  
     
   ;; Demonstrate 'drop': discard a value
   (func $test_drop (export "test_drop")
@@ -190,7 +191,42 @@
     call $log       ;; Output should be 222
   )
 
+  
 
+  ;; Define a mutable global variable
+  (global $g (mut i32) (i32.const 10)) ;; initially 10
+
+  ;; Use local.get, local.set, local.tee
+  (func $test_local (export "test_local")
+    (local $x i32)
+    i32.const 42         ;; push value
+    local.set $x         ;; $x = 42
+
+    local.get $x         ;; push $x (42)
+    call $log            ;; log 42
+
+    i32.const 7
+    local.tee $x         ;; $x = 7, keep 7 on stack
+    call $log            ;; log 7
+
+    local.get $x         ;; get $x again (should be 7)
+    call $log            ;; log 7
+  )
+
+  ;; Use global.get and global.set
+  (func $test_global (export "test_global")
+    global.get $g        ;; Get initial global value (10)
+    call $log            ;; log 10
+
+    i32.const 99
+    global.set $g        ;; Set global to 99
+
+    global.get $g
+    call $log            ;; log 99
+  )
+  
+  
+  
   (func $init
     call $test_const
     call $test_iunop
@@ -200,6 +236,9 @@
     call $test_drop
     call $test_select_true
     call $test_select_false
+    
+    call $test_local
+    call $test_global
   )
   
   ;; Automatically invoked when the module is instantiated, after tables and memories have been initialized.
