@@ -227,6 +227,39 @@
   
   
   
+  ;; Declare a memory of 1 page (64KiB)
+  (memory $mem 1)
+
+  ;; Export memory so it can be inspected externally (optional)
+  (export "memory" (memory $mem))
+
+  ;; Store a value into memory at offset 0
+  (func $store_value (export "store_value")
+    i32.const 0        ;; memory offset
+    i32.const 1234     ;; value to store
+    i32.store          ;; store 1234 at memory[0..3]
+  )
+
+  ;; Load the value from memory at offset 0
+  (func $load_value (export "load_value")
+    i32.const 0        ;; memory offset
+    i32.load           ;; load 4 bytes starting at offset 0
+    call $log          ;; print loaded value (should be 1234)
+  )
+
+  ;; Store another value at offset 4 and load it
+  (func $store_and_load_other (export "store_and_load_other")
+    i32.const 4
+    i32.const 5678
+    i32.store
+
+    i32.const 4
+    i32.load
+    call $log          ;; Should log 5678
+  )
+  
+  
+  
   (func $init
     call $test_const
     call $test_iunop
@@ -239,6 +272,9 @@
     
     call $test_local
     call $test_global
+    
+    call $store_value
+    call $load_value
   )
   
   ;; Automatically invoked when the module is instantiated, after tables and memories have been initialized.
