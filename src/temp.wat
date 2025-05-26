@@ -163,12 +163,43 @@
     i32.ge_u
     call $log
   )
+  
+    
+  ;; Demonstrate 'drop': discard a value
+  (func $test_drop (export "test_drop")
+    i32.const 100   ;; Push value 100
+    drop            ;; Drop it
+    i32.const 42    ;; Push 42
+    call $log       ;; Output should be 42
+  )
+
+  ;; Demonstrate 'select': choose between two values based on a condition
+  (func $test_select_true (export "test_select_true")
+    i32.const 111   ;; val1
+    i32.const 222   ;; val2
+    i32.const 1     ;; condition ≠ 0 → select val1
+    select
+    call $log       ;; Output should be 111
+  )
+
+  (func $test_select_false (export "test_select_false")
+    i32.const 111   ;; val1
+    i32.const 222   ;; val2
+    i32.const 0     ;; condition = 0 → select val2
+    select
+    call $log       ;; Output should be 222
+  )
+
 
   (func $init
     call $test_const
     call $test_iunop
     call $test_ibinop
     call $test_irelop
+    
+    call $test_drop
+    call $test_select_true
+    call $test_select_false
   )
   
   ;; Automatically invoked when the module is instantiated, after tables and memories have been initialized.
