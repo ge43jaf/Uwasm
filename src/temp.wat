@@ -260,6 +260,57 @@
   
   
   
+  ;; A simple function that returns a constant and uses return
+  (func $give_value (result i32)
+    i32.const 42
+    return
+  )
+
+  ;; Demonstrate `nop`, `call`, and `if`
+  (func $test_if_call (export "test_if_call")
+    nop                   ;; does nothing
+    i32.const 1           ;; condition = true
+    if                   ;; if condition ≠ 0
+      call $give_value   ;; call function and push 42
+      call $log          ;; log 42
+    end
+  )
+
+  ;; Demonstrate `loop`, `br_if`, and `br`
+  (func $test_loop (export "test_loop")
+    (local $i i32)
+    i32.const 0
+    local.set $i
+
+    loop $main_loop
+      local.get $i
+      call $log         ;; log i
+      local.get $i
+      i32.const 3
+      i32.eq
+      br_if 1           ;; break out of loop if i == 3
+
+      local.get $i
+      i32.const 1
+      i32.add
+      local.set $i
+      br $main_loop     ;; go back to loop
+    end
+  )
+
+  ;; Use `br` to skip over code
+  (func $test_br (export "test_br")
+    block
+      i32.const 123
+      call $log         ;; log 123
+      br 0              ;; skip the next instruction
+      i32.const 999     ;; this is skipped
+      call $log
+    end
+  )
+  
+  
+  
   (func $init
     call $test_const
     call $test_iunop
@@ -275,6 +326,14 @@
     
     call $store_value
     call $load_value
+    call $store_and_load_other
+    
+    
+    ;; Why error here, because of the return inside $give_value?
+    ;; call $give_value
+    call $test_if_call
+    call $test_loop
+    call $test_br
   )
   
   ;; Automatically invoked when the module is instantiated, after tables and memories have been initialized.
