@@ -94,6 +94,8 @@
   (func $sort_array (export "sort_array") (param $len i32)
     (local $i i32)
     (local $j i32)
+    (local $addr1 i32)
+    (local $addr2 i32)
     (local $tmp1 i32)
     (local $tmp2 i32)
     (local $cmp i32)
@@ -120,13 +122,25 @@
         i32.ge_u
         br_if $inner_break
 
+        ;; compute addresses
         local.get $j
-        i32.load
-        local.set $tmp1
+        i32.const 4
+        i32.mul
+        local.set $addr1
 
         local.get $j
         i32.const 1
         i32.add
+        i32.const 4
+        i32.mul
+        local.set $addr2
+
+        ;; load elements
+        local.get $addr1
+        i32.load
+        local.set $tmp1
+
+        local.get $addr2
         i32.load
         local.set $tmp2
 
@@ -137,10 +151,8 @@
 
         local.get $cmp
         if
-          local.get $j
-          i32.const 1
-          i32.add
-          local.get $j
+          local.get $addr1
+          local.get $addr2
           call $swap
         end
 
