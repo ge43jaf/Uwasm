@@ -96,8 +96,6 @@
     (local $j i32)
     (local $addr1 i32)
     (local $addr2 i32)
-    (local $tmp1 i32)
-    (local $tmp2 i32)
     (local $cmp i32)
 
     i32.const 0
@@ -138,14 +136,10 @@
         ;; load elements
         local.get $addr1
         i32.load
-        local.set $tmp1
 
         local.get $addr2
         i32.load
-        local.set $tmp2
 
-        local.get $tmp1
-        local.get $tmp2
         call $greater_than
         local.set $cmp
 
