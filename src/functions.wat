@@ -91,7 +91,7 @@
   )
 
   ;; Imperative sorting function (Bubble Sort) that takes array length as parameter
-  (func $sort_array (export "sort_array") (param $len i32)
+  (func $sort_array_imperative(export "sort_array_imperative") (param $len i32)
     (local $i i32)
     (local $j i32)
     (local $addr1 i32)
@@ -167,6 +167,92 @@
     end ;; end outer loop
   )
 
+  
+  ;; Functional sorting function (using recursion)
+(func $sort_array_functional (export "sort_array_functional") (param $len i32)
+  ;; Start the sorting process
+  (if
+    (i32.gt_u (local.get $len) (i32.const 1))
+    (then
+      (call $sort_outer (local.get $len) (i32.const 0) (i32.const 1))
+    )
+  )
+)
+
+;; Helper function for recursive sorting - one bubble pass
+(func $bubble_pass (param $len i32) (param $j i32) (param $swapped i32) (result i32)
+  (local $addr1 i32)
+  (local $addr2 i32)
+  (local $val1 i32)
+  (local $val2 i32)
+  
+  ;; Base case: end of pass
+  (if (result i32)
+    (i32.ge_u (local.get $j) (i32.sub (local.get $len) (i32.const 1)))
+    (then
+      (local.get $swapped)  ;; return whether any swaps occurred
+    )
+    (else
+      ;; compute addresses
+      (local.set $addr1 (i32.mul (local.get $j) (i32.const 4)))
+      (local.set $addr2 (i32.mul (i32.add (local.get $j) (i32.const 1)) (i32.const 4)))
+      
+      ;; load elements
+      (local.set $val1 (i32.load (local.get $addr1)))
+      (local.set $val2 (i32.load (local.get $addr2)))
+      
+      ;; compare and swap if needed
+      (if (result i32)
+        (call $greater_than (local.get $val1) (local.get $val2))
+        (then
+          (call $swap (local.get $addr1) (local.get $addr2))
+          ;; recurse with swapped flag set
+          (call $bubble_pass 
+            (local.get $len)
+            (i32.add (local.get $j) (i32.const 1))
+            (i32.const 1))
+        )
+        (else
+          ;; recurse without swapping
+          (call $bubble_pass 
+            (local.get $len)
+            (i32.add (local.get $j) (i32.const 1))
+            (local.get $swapped))
+        )
+      )
+    )
+  )
+)
+
+;; Outer loop replacement - recursive function
+(func $sort_outer (param $len i32) (param $i i32) (param $swapped i32)
+  (local $new_swapped i32)
+  
+  ;; Base case: if no swaps occurred or we've done enough passes
+  (if
+    (i32.or
+      (i32.eqz (local.get $swapped))
+      (i32.ge_u (local.get $i) (i32.sub (local.get $len) (i32.const 1)))
+    )
+    (then)  ;; done sorting
+    (else
+      ;; Do a bubble pass and recurse
+      (local.set $new_swapped 
+        (call $bubble_pass 
+          (local.get $len)
+          (i32.const 0)
+          (i32.const 0)))
+      
+      (call $sort_outer 
+        (local.get $len)
+        (i32.add (local.get $i) (i32.const 1))
+        (local.get $new_swapped))
+    )
+  )
+)
+  
+  
+  
   ;; Call all the functions (optional entry)
   (func $init
     ;; fill memory[0..3] with values 23, 5, 17, 8
@@ -185,7 +271,7 @@
 
     ;; sort 4 elements
     i32.const 4
-    call $sort_array
+    call $sort_array_imperative
 
     ;; log sorted values
     i32.const 0
@@ -201,6 +287,41 @@
     i32.load
     call $log
 
+    
+    
+    ;; fill memory[0..3] with values 23, 5, 17, 8
+    i32.const 0
+    i32.const 23
+    i32.store
+    i32.const 4
+    i32.const 5
+    i32.store
+    i32.const 8
+    i32.const 17
+    i32.store
+    i32.const 12
+    i32.const 8
+    i32.store
+
+    ;; sort 4 elements
+    i32.const 4
+    call $sort_array_functional
+
+    ;; log sorted values
+    i32.const 0
+    i32.load
+    call $log
+    i32.const 4
+    i32.load
+    call $log
+    i32.const 8
+    i32.load
+    call $log
+    i32.const 12
+    i32.load
+    call $log
+    
+    
     ;; run other tests
     i32.const 5
     call $sum_n
