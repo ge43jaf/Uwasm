@@ -10,6 +10,8 @@
     i32.lt_s
     if
       local.get $fib
+      call $log
+      local.get $fib
       return
     end
 
