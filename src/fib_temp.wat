@@ -1,65 +1,55 @@
 (module
-  (func $fib (param $n i32) (result i32)
+  (import "console" "log" (func $log (param i32)))
+  (func $fib (param $fib i32) (result i32)
+    (local $a i32)
+    (local $b i32)
+    (local $nextTerm i32)
 
-    local.get $n
+    local.get $fib
     i32.const 2
     i32.lt_s
-    if (result i32)
-      local.get $n
+    if
+      local.get $fib
       return
     end
 
     ;; Stack: a=0, b=1
     i32.const 0
+    local.set $a
+    local.get $a
+    call $log
+
     i32.const 1
+    local.set $b
+    local.get $b
+    call $log
 
-    ;; Loop: for i = n-2 downto 0
-    local.get $n
-    i32.const 2
-    i32.sub
     loop $loop
-      ;; stack: a b
-      ;; compute a + b, push result -> new b
-      ;; then slide old b (now top) down -> new a
-      ;; a b
-      ;; => a b a+b
-      ;; => b a+b
-      ;; swap: drop a, keep b and a+b
-      ;; slide b as new a, a+b as new b
-      ;; so just keep b, a+b
-
-      ;; dup top two: a b → a b a b
-      get_local $0 ;; reusing param register since no new locals allowed
-      drop          ;; ignore actual value, placeholder
-      ;; instead simulate with manual manipulation:
-      ;; stack: a b → a b a b → a+b → b a+b
-      ;; actual:
-      ;; - duplicate top 2
-      ;; - add
-      ;; - swap for next iteration
-
-      ;; Implement: a b → b a+b
-      ;; do:
-      ;; a b → a b → a+b → b a+b
+      local.get $a
+      local.get $b
       i32.add
-      i32.swap
-
-      ;; decrement loop counter
-      local.get $n
-      i32.const 2
-      i32.sub
+      local.set $nextTerm
+      local.get $nextTerm
+      call $log
+    
+      local.get $b
+      local.set $a
+    
+      local.get $nextTerm
+      local.set $b
+    
+      local.get $fib
       i32.const 1
       i32.sub
-      local.set $n
-
-      local.get $n
+      local.set $fib
+    
+      local.get $fib
       i32.const 0
       i32.gt_s
       br_if $loop
     end
-
-    ;; result on top of stack
-    i32.pop
+    
+    local.get $b
   )
 
   (export "fib" (func $fib))
