@@ -50,6 +50,10 @@ class Parser:
         if len(tokens) == 0:
             print("SyntaxError: Expected ( at the start of the program")
             return None
+        
+        if tokens[-1] != ')':
+            print("SyntaxError: Expected ) at the end of the program")
+            return None
             
         # Should first check (module ...)
         token = tokens.pop(0)
@@ -63,10 +67,6 @@ class Parser:
         
         if token != 'module':
             print("SyntaxError: Expected a module at the beginning")
-            return None
-        
-        if tokens[-1] != ')':
-            print("SyntaxError: Expected ) at the end of the program")
             return None
         
         token = tokens.pop(0)
@@ -117,6 +117,9 @@ class Parser:
         params = {}
         locals = {}
         
+        print('Parse signature, tokens : ')
+        print(tokens)
+        
         # (...) (...) (...)
         while tokens and tokens[0] != ')':
             if tokens[0] == 'export':
@@ -126,11 +129,14 @@ class Parser:
                 # Operations for export
                 
                 token = tokens.pop(0)
+                print('Token in while export : ' + token)
+                
                 if token != ')':
                     print("SyntaxError: Expected ) at the end of function result")
                     return None
                 elif tokens:
-                    token = tokens.pop()
+                    token = tokens.pop(0)
+                    print('Token in while export elif : ' + token)
                     if(token == '('):
                         parse_function_signature(token, tokens)     # TODO : Single export?
                     else:
@@ -150,7 +156,7 @@ class Parser:
                     print("SyntaxError: Expected ) at the end of function params")
                     return None
                 elif tokens:
-                    token = tokens.pop()
+                    token = tokens.pop(0)
                     if(token == '('):
                         parse_function_signature(token, tokens)
                     else:
@@ -170,7 +176,7 @@ class Parser:
                     print("SyntaxError: Expected ) at the end of function locals")
                     return None
                 elif tokens:
-                    token = tokens.pop()
+                    token = tokens.pop(0)
                     if(token == '('):
                         parse_function_signature(token, tokens)
                     else:
@@ -189,7 +195,7 @@ class Parser:
                     print("SyntaxError: Expected ) at the end of function result")
                     return None
                 elif tokens:
-                    token = tokens.pop()
+                    token = tokens.pop(0)
                     if(token == '('):
                         parse_function_signature(token, tokens)     # TODO : Single result?
                     else:
