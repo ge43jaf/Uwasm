@@ -87,7 +87,7 @@ class Parser:
             
         else:
             # return self.validate(token, tokens)
-            print("SyntaxError: All terms7expression surrounded with (...) expected")
+            print("SyntaxError: All terms/expression surrounded with (...) expected")
             return None
         
     def parse_functions(self, token, tokens):
@@ -107,15 +107,111 @@ class Parser:
         if token[0] == '$':         # TODO: Further validations waited
             funcs.add(token[1:])
         elif token == '(':
-            
-            
-            
-        
-    def validate(self, instruction, tokens):
-        
-        if instruction not in self.WASM_INSTRUCTIONS:
-            print(f"SyntaxError: Unknown instruction '{instruction}'")
+            return self.parse_function_signature(token, tokens)
+        else:
+            print("SyntaxError: Function signature not defined")     # TODO: Add situation like nop
             return None
+            
+    
+    def parse_function_signature(self, token, tokens):
+        params = {}
+        locals = {}
+        
+        # (...) (...) (...)
+        while tokens and tokens[0] != ')':
+            if tokens[0] == 'export':
+                tokens.pop(0)
+                # TODO: Validation: Existance + Type
+                token = tokens.pop(0)
+                # Operations for export
+                
+                token = tokens.pop(0)
+                if token != ')':
+                    print("SyntaxError: Expected ) at the end of function result")
+                    return None
+                elif tokens:
+                    token = tokens.pop()
+                    if(token == '('):
+                        parse_function_signature(token, tokens)     # TODO : Single export?
+                    else:
+                        break
+                else:
+                    print("SyntaxError: Unexpected EOF at function result")
+                    
+            elif tokens[0] == 'param':
+                
+                tokens.pop(0)
+                # TODO: Validation: Existance + Type
+                token = tokens.pop(0)
+                params.add(token)
+                
+                token = tokens.pop(0)
+                if token != ')':
+                    print("SyntaxError: Expected ) at the end of function params")
+                    return None
+                elif tokens:
+                    token = tokens.pop()
+                    if(token == '('):
+                        parse_function_signature(token, tokens)
+                    else:
+                        break
+                else:
+                    print("SyntaxError: Unexpected EOF at function params")
+                    return None
+                    
+            elif tokens[0] == 'local':
+                tokens.pop(0)
+                # TODO: Validation: Existance + Type
+                token = tokens.pop(0)
+                locals.add(token)
+                
+                token = tokens.pop(0)
+                if token != ')':
+                    print("SyntaxError: Expected ) at the end of function locals")
+                    return None
+                elif tokens:
+                    token = tokens.pop()
+                    if(token == '('):
+                        parse_function_signature(token, tokens)
+                    else:
+                        break
+                else:
+                    print("SyntaxError: Unexpected EOF at function locals")
+                    
+            elif tokens[0] == 'result':  #TODO: Single result check
+                tokens.pop(0)
+                # TODO: Validation: Existance + Type
+                token = tokens.pop(0)
+                result = token  # TODO: K-V Pair
+                
+                token = tokens.pop(0)
+                if token != ')':
+                    print("SyntaxError: Expected ) at the end of function result")
+                    return None
+                elif tokens:
+                    token = tokens.pop()
+                    if(token == '('):
+                        parse_function_signature(token, tokens)     # TODO : Single result?
+                    else:
+                        break
+                else:
+                    print("SyntaxError: Unexpected EOF at function result")
+                    
+            else:
+                print("SyntaxError: Function signature not defined correctly")
+                return None
+                
+        
+        print('End of parse_function_signature Token : "' + token + '" ')
+        
+        if token not in self.WASM_INSTRUCTIONS:
+            print(f"SyntaxError: Unknown instruction '{token}'")
+            return None
+        
+        self.parse_function_instructions(token, tokens)
+    
+    
+    def parse_function_instructions(self, instruction, tokens):
 
         params = self.WASM_INSTRUCTIONS[instruction]
 
