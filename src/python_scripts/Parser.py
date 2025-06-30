@@ -138,7 +138,7 @@ class Parser:
                     token = tokens.pop(0)
                     print('Token in while export elif : ' + token)
                     if(token == '('):
-                        parse_function_signature(token, tokens)     # TODO : Single export?
+                        self.parse_function_signature(token, tokens)     # TODO : Single export?
                     else:
                         break
                 else:
@@ -158,7 +158,7 @@ class Parser:
                 elif tokens:
                     token = tokens.pop(0)
                     if(token == '('):
-                        parse_function_signature(token, tokens)
+                        self.parse_function_signature(token, tokens)
                     else:
                         break
                 else:
@@ -178,7 +178,7 @@ class Parser:
                 elif tokens:
                     token = tokens.pop(0)
                     if(token == '('):
-                        parse_function_signature(token, tokens)
+                        self.parse_function_signature(token, tokens)
                     else:
                         break
                 else:
@@ -197,7 +197,7 @@ class Parser:
                 elif tokens:
                     token = tokens.pop(0)
                     if(token == '('):
-                        parse_function_signature(token, tokens)     # TODO : Single result?
+                        self.parse_function_signature(token, tokens)     # TODO : Single result?
                     else:
                         break
                 else:
