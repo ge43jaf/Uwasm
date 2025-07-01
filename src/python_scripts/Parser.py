@@ -148,8 +148,25 @@ class Parser:
                 
                 tokens.pop(0)
                 # TODO: Validation: Existance + Type
+                
                 token = tokens.pop(0)
-                params.add(token)
+
+                if token[0] == '$':
+                    print('Token as variable name in param : ' + token)
+                    params[token] = 'i32'   # TODO : Wait for further types support
+                else:
+                    index = 0;
+                    while tokens:
+                        token = tokens.pop(0)
+                        if token == 'i32':
+                            params[index] = 'i32'
+                        elif token == ')':
+                            break
+                        else:
+                            print("SyntaxError: Unexpected Symbol at function params")
+                #params.add(token)
+                
+                
                 
                 token = tokens.pop(0)
                 if token != ')':
