@@ -134,7 +134,8 @@ class Parser:
                 if token != ')':
                     print("SyntaxError: Expected ) at the end of function result")
                     return None
-                elif tokens:
+                
+                if tokens:
                     token = tokens.pop(0)
                     print('Token in while export elif : ' + token)
                     if(token == '('):
@@ -154,6 +155,23 @@ class Parser:
                 if token[0] == '$':
                     print('Token as variable name in param : ' + token)
                     params[token] = 'i32'   # TODO : Wait for further types support
+                    
+                    if tokens:
+                        token = tokens.pop(0)
+                        if(token == 'i32'):
+                            
+                            if tokens:
+                                token = tokens.pop(0)
+                                
+                            else:
+                                print("SyntaxError: Unexpected EOF at function params")
+                                return None
+                            
+                        else:
+                            print("TypeError: i32 waited at function params")
+                    else:
+                        print("SyntaxError: Unexpected EOF at function params")
+                        return None
                 else:
                     index = 0;
                     while tokens:
@@ -167,12 +185,11 @@ class Parser:
                 #params.add(token)
                 
                 
-                
-                token = tokens.pop(0)
                 if token != ')':
                     print("SyntaxError: Expected ) at the end of function params")
                     return None
-                elif tokens:
+                
+                if tokens:
                     token = tokens.pop(0)
                     if(token == '('):
                         self.parse_function_signature(token, tokens)
@@ -192,7 +209,8 @@ class Parser:
                 if token != ')':
                     print("SyntaxError: Expected ) at the end of function locals")
                     return None
-                elif tokens:
+                
+                if tokens:
                     token = tokens.pop(0)
                     if(token == '('):
                         self.parse_function_signature(token, tokens)
@@ -211,7 +229,8 @@ class Parser:
                 if token != ')':
                     print("SyntaxError: Expected ) at the end of function result")
                     return None
-                elif tokens:
+                
+                if tokens:
                     token = tokens.pop(0)
                     if(token == '('):
                         self.parse_function_signature(token, tokens)     # TODO : Single result?
@@ -221,8 +240,8 @@ class Parser:
                     print("SyntaxError: Unexpected EOF at function result")
                     
             else:
-                print("SyntaxError: Function signature not defined correctly")
                 return None
+                print("SyntaxError: Function signature not defined correctly : " + tokens[0])
                 
         
         print('End of parse_function_signature Token : "' + token + '" ')
@@ -231,7 +250,7 @@ class Parser:
             print(f"SyntaxError: Unknown instruction '{token}'")
             return None
         
-        self.parse_function_instructions(token, tokens)
+        return self.parse_function_instructions(token, tokens)
     
     
     def parse_function_instructions(self, instruction, tokens):
@@ -245,6 +264,47 @@ class Parser:
                 self._validate_instruction(tokens.pop(0), tokens)
             return instruction
         
+        elif params == 1:
+            if tokens and tokens[0] not in ('(', ')'):
+                
+                # param
+                token = tokens.pop(0)   
+                # self._validate_instruction(tokens.pop(0), tokens)
+                
+                if tokens and tokens[0]:
+                    token = tokens.pop(0)
+                    
+                    if token == ')':
+                        print("End of function body")
+                    elif token == '(':
+                        print("Not implemented yet")
+                    elif token in self.WASM_INSTRUCTIONS:
+                        return [instruction, token] + [self.parse_function_instructions(token, tokens)]
+                    else:    
+                        print(f"SyntaxError: Unknown instruction '{token}'")
+                        return None
+                        
+                
+            else:
+                print(f"SyntaxError : Instruction '{instruction}' requires 1 parameter")
+                return None
         
+        elif isinstance(params, tuple):
+            
+            # Range of parameters (min, max)
+            min_p, max_p = params
+            params_list = []
+            while len(params_list) < max_p and tokens and tokens[0] not in ('(', ')'):
+                params_list.append(tokens.pop(0))
+                
+            print(f"[instruction '{instruction}' + params_list '{params_list}' ")
+            
+            return [instruction] + params_list + self.parse_function_instructions(token, tokens)
+        elif params == 'var':
+            
+            return [instruction] + self.parse_function_instructions(token, tokens)
+            
+        else:
+            print(f"ValueError : Invalid parameter specification for instruction {instruction}")
+            return None
 
-        
