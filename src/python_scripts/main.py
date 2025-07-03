@@ -14,9 +14,32 @@ wat_code = """
 lexer = Lexer()
 tokens = lexer.tokenize(wat_code)
 
-parser = Parser()
-ast = parser.parse(tokens)
-pprint.pprint(ast[:5], width=100)
+print("Tokens:")
+for token in tokens:
+    # print(f"{token[0].name}: {token[1]}")
+    print(f"{token}")
+    
+# if lexer.lexical_errors:
+#     print("Lexical errors:")
+#     for error in lexer.lexical_errors:
+#         print(error)
+# else:
+#     # Parse
+#     parser = Parser()
+#     ast = parser.parse(tokens)
+    
+#     if parser.errors:
+#         print("Parser errors:")
+#         for error in parser.errors:
+#             print(error)
+#     else:
+#         print("AST:")
+#         pprint.pprint(ast, indent=2)
+        
+        
+# parser = Parser()
+# ast = parser.parse(tokens)
+# pprint.pprint(ast[:5], width=100)
 
 # with open("ast.txt", "w") as f:
 #     pprint.pprint(ast, stream=f)
