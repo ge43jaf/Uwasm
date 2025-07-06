@@ -1,45 +1,40 @@
-import pprint
 from Lexer import Lexer
 from Parser import Parser
+import pprint
 
-wat_code = """
+def main():
+    # Example WAT code
+    wat_code = """
     (module
-    (func (export "addTwo") (param i32 i32) (result i32)
-        local.get 0
-        local.get 5
-        i32.add))
+        (func $add (param $a i32) (param $b i32) (result i32)
+            (local.get $a)
+            (local.get $b)
+            (i32.add)
+        )
+        (export "add" (func $add))
     )
     """
-
-lexer = Lexer()
-tokens = lexer.tokenize(wat_code)
-
-print("Tokens:")
-for token in tokens:
-    # print(f"{token[0].name}: {token[1]}")
-    print(f"{token}")
     
-# if lexer.lexical_errors:
-#     print("Lexical errors:")
-#     for error in lexer.lexical_errors:
-#         print(error)
-# else:
-#     # Parse
-#     parser = Parser()
-#     ast = parser.parse(tokens)
+    lexer = Lexer()
+    parser = Parser()
     
-#     if parser.errors:
-#         print("Parser errors:")
-#         for error in parser.errors:
-#             print(error)
-#     else:
-#         print("AST:")
-#         pprint.pprint(ast, indent=2)
-        
-        
-# parser = Parser()
-# ast = parser.parse(tokens)
-# pprint.pprint(ast[:5], width=100)
+    tokens = lexer.tokenize(wat_code)
+    if tokens is None:
+        print("Lexical analysis failed")
+        return
+    
+    print("Tokens:")
+    for token in tokens:
+        print(token)
+    
+    ast = parser.parse(tokens)
+    if ast is None:
+        print("Parsing failed")
+        return
+    
+    print("\nAST: Typeof AST:")
+    print(type(ast))
+    pprint.pprint(ast)
 
-# with open("ast.txt", "w") as f:
-#     pprint.pprint(ast, stream=f)
+if __name__ == "__main__":
+    main()
