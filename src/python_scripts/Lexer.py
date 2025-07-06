@@ -1,9 +1,12 @@
+import re
 
 class Module:
     def __init__(self, funcs=None):
         self.funcs = funcs if funcs else []
+    
     def __repr__(self):
-        return f"Module(funcs={self.funcs})"
+        funcs_str = "\n".join(f"  {repr(f)}" for f in self.funcs)
+        return f"Module:\n{funcs_str}"
 
 class Func:
     def __init__(self, name=None, params=None, results=None, locals=None, body=None):
@@ -12,8 +15,42 @@ class Func:
         self.results = results if results else []
         self.locals = locals if locals else []
         self.body = body if body else []
+    
     def __repr__(self):
-        return f"Func(name={self.name}, params={self.params}, results={self.results}, locals={self.locals}, body={self.body})"
+        parts = []
+        if self.name:
+            parts.append(f"  name: {self.name}")
+        if self.params:
+            parts.append("  params:")
+            parts.extend(f"    {p}" for p in self.params)
+        if self.results:
+            parts.append(f"  results: {self.results}")
+        if self.locals:
+            parts.append("  locals:")
+            parts.extend(f"    {l}" for l in self.locals)
+        if self.body:
+            parts.append("  body:")
+            parts.extend(f"    {i}" for i in self.body)
+        return "Func:\n" + "\n".join(parts)
+
+class Instruction:
+    def __init__(self, op, operands=None):
+        self.op = op
+        self.operands = operands if operands else []
+    
+    def __repr__(self, indent=0):
+        indent_str = "  " * indent
+        operands_str = []
+        for op in self.operands:
+            if isinstance(op, Instruction):
+                operands_str.append(op.__repr__(indent+1))
+            else:
+                operands_str.append(f"{indent_str}  {op}")
+        operands = "\n".join(operands_str)
+        return f"{indent_str}{self.op}:\n{operands}"
+
+
+
 
 class Param:
     def __init__(self, name=None, type=None):
@@ -28,13 +65,6 @@ class Local:
         self.type = type
     def __repr__(self):
         return f"Local(name={self.name}, type={self.type})"
-
-class Instruction:
-    def __init__(self, op, operands=None):
-        self.op = op
-        self.operands = operands if operands else []
-    def __repr__(self):
-        return f"Instr({self.op}, {self.operands})"
 
 
 class LPAREN:
@@ -59,25 +89,36 @@ class EOF:
     def __repr__(self): return "EOF()"
 
 # TODO: Further
-class Module: pass
-class Func: pass
-class Param: pass
+# class Module: pass
+# class Func: pass
+# class Param: pass
 class Result: pass
-class Local: pass
+# class Local: pass
 class Export: pass
 class Memory: pass
 class Data: pass
 class Type: pass
 
+
 # Instruction Classes
-class i32_const: pass
-class i32_add: pass
-class local_get: pass
-class local_set: pass
-class global_get: pass
-class global_set: pass
-class call: pass
-class _return: pass  # 'return' is a Python keyword
+class Instruction:
+    def __init__(self, op, operands=None):
+        self.op = op
+        self.operands = operands if operands else []
+    
+    def __repr__(self):
+        operands_str = ", ".join(repr(op) for op in self.operands)
+        return f"Instr({self.op}, [{operands_str}])"
+        
+class _i32_const: 
+    def __repr__(self): return "_i32_const"
+class _i32_add: pass
+class _local_get: pass
+class _local_set: pass
+class _global_get: pass
+class _global_set: pass
+class _call: pass
+class _return: pass
 
 # Keyword and Instruction Sets
 KEYWORDS = {
@@ -100,13 +141,19 @@ class Lexer:
         elif lexeme in INSTRUCTIONS:
             if lexeme == 'return':
                 return _return
-            return globals()[lexeme.replace('.', '_')]
+            return globals()['_' + lexeme.replace('.', '_')]
         return None
 
     def tokenize(self, wat):
         self.input = wat
         self.pos = 0
         self.tokens = []
+        
+        # Remove two types of comments
+        wat = re.sub(r"\(\;.*?\;\)", "", wat, flags=re.DOTALL)
+
+        wat = re.sub(r";;.*", "", wat)
+        
         
         while self.pos < len(self.input):
             c = self.input[self.pos]
@@ -116,10 +163,9 @@ class Lexer:
                     self.line_number += 1
                 self.pos += 1
             
-            elif c == ';' and self.pos + 1 < len(self.input) and self.input[self.pos+1] == ';':
-                self.pos += 2
-                while self.pos < len(self.input) and self.input[self.pos] != '\n':
-                    self.pos += 1
+            elif c == ';':
+                pass
+                # Further comment manipulation
             
             elif c == '"':
                 start = self.pos
@@ -161,7 +207,7 @@ class Lexer:
                 
                 token_class = self.get_token_class(lexeme)
                 if token_class:
-                    self.tokens.append(token_class())
+                    self.tokens.append(token_class())       # Passing parameters here?
                 else:
                     self.tokens.append(ID(lexeme))
             
