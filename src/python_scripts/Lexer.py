@@ -1,3 +1,4 @@
+
 import re
 
 class Module:
@@ -77,6 +78,10 @@ class ID:
     def __init__(self, value): self.value = value
     def __repr__(self): return f"ID({self.value})"
 
+class TYPE:
+    def __init__(self, value): self.value = value
+    def __repr__(self): return f"TYPE({self.value})"
+    
 class CONST:
     def __init__(self, value): self.value = value
     def __repr__(self): return f"CONST({self.value})"
@@ -97,18 +102,18 @@ class Result: pass
 class Export: pass
 class Memory: pass
 class Data: pass
-class Type: pass
+# class Type: pass
 
 
 # Instruction Classes
-class Instruction:
-    def __init__(self, op, operands=None):
-        self.op = op
-        self.operands = operands if operands else []
+# class Instruction:
+#     def __init__(self, op, operands=None):
+#         self.op = op
+#         self.operands = operands if operands else []
     
-    def __repr__(self):
-        operands_str = ", ".join(repr(op) for op in self.operands)
-        return f"Instr({self.op}, [{operands_str}])"
+#     def __repr__(self):
+#         operands_str = ", ".join(repr(op) for op in self.operands)
+#         return f"Instr({self.op}, [{operands_str}])"
         
 class _i32_const: 
     def __repr__(self): return "_i32_const"
@@ -126,10 +131,40 @@ KEYWORDS = {
     'export', 'memory', 'data', 'type'
 }
 
-INSTRUCTIONS = {
-    'i32.const', 'i32.add', 'local.get', 'local.set',
-    'global.get', 'global.set', 'call', 'return'
-}
+WASM_INSTRUCTIONS = {
+
+            # TODO : Further refinement
+
+            # Numeric instructions
+            'i32.const': 1,
+            'i32.add': 0,
+            'i32.sub': 0,
+            'i32.mul': 0,
+            'i32.div_s': 0,
+            'i32.ge_u': 0,
+            'i32.gt_s': 0,
+            
+            # Memory instructions
+            'i32.load': (0, 2),
+            'i32.store': (0, 2),
+            
+            # Variable instructions
+            'local.set': 1,
+            'local.get': 1,
+            'local.tee': 1,
+            'global.set': 1,
+            'global.get': 1,
+            
+            # Control flow
+            'call': 1,
+            'return': 0,
+            'nop': 0,
+            'block': 'var',
+            'loop': 'var',
+            'br': 1,
+            'br_if': 1,
+            'if': 'var'
+        }
 
 class Lexer:
     def __init__(self):
@@ -138,9 +173,10 @@ class Lexer:
     def get_token_class(self, lexeme):
         if lexeme in KEYWORDS:
             return globals()[lexeme.capitalize()]
-        elif lexeme in INSTRUCTIONS:
-            if lexeme == 'return':
-                return _return
+        elif lexeme in WASM_INSTRUCTIONS:
+            # if lexeme == 'return':
+            #     return _return
+            
             return globals()['_' + lexeme.replace('.', '_')]
         return None
 
@@ -197,17 +233,20 @@ class Lexer:
                     self.pos += 1
                 self.tokens.append(CONST(self.input[start:self.pos]))
             
-            elif c.isalpha() or c in {'_', '$', '@', '#'}:
+            elif c.isalpha() or c in {'_', '$'}:
                 start = self.pos
                 self.pos += 1
                 while self.pos < len(self.input) and (self.input[self.pos].isalnum() or 
-                     self.input[self.pos] in {'_', '.', '+', '-', '$', '@', '#'}):
+                     self.input[self.pos] in {'_', '.', '-'}):
                     self.pos += 1
                 lexeme = self.input[start:self.pos]
                 
                 token_class = self.get_token_class(lexeme)
                 if token_class:
                     self.tokens.append(token_class())       # Passing parameters here?
+                    
+                elif lexeme == "i32":                   # TODO: signed, unsigned, etc.
+                    self.tokens.append(TYPE(lexeme))
                 else:
                     self.tokens.append(ID(lexeme))
             
