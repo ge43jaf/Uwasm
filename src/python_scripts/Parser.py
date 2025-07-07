@@ -1,8 +1,14 @@
 from Lexer import (
-    LPAREN, RPAREN, ID, CONST, STRING, EOF,
+    LPAREN, RPAREN, ID, TYPE, CONST, STRING, EOF,
     Module, Func, Param, Result, Local, Export, Memory, Instruction,
-    _i32_const, _i32_add, _local_get, _local_set,
-    _global_get, _global_set, _call, _return
+    _i32_const, 
+    _i32_add, 
+    _local_get, 
+    _local_set,
+    _global_get, 
+    _global_set, 
+    _call,
+    _return
 )
 
 class Parser:
@@ -85,6 +91,7 @@ class Parser:
             func.name = self.current_token.value
             self.next_token()
         
+        # (...) (...) (...)
         while not isinstance(self.current_token, RPAREN):
             if not isinstance(self.current_token, LPAREN):
                 print(f"Unexpected token in func: {self.current_token}")
@@ -127,7 +134,7 @@ class Parser:
             param.name = self.current_token.value
             self.next_token()
         
-        if isinstance(self.current_token, ID):
+        if isinstance(self.current_token, TYPE):
             param.type = self.current_token.value
             self.next_token()
         else:
@@ -156,7 +163,7 @@ class Parser:
     def parse_result(self):
         self.next_token()
         
-        if isinstance(self.current_token, ID):
+        if isinstance(self.current_token, TYPE):
             result_type = self.current_token.value
             self.next_token()
             return result_type
@@ -165,9 +172,15 @@ class Parser:
             return None
     
     def parse_instruction(self):
-        if isinstance(self.current_token, (_i32_const, _i32_add, _local_get, 
-                                         _local_set, _global_get, _global_set, 
-                                         _call, _return)):
+        if isinstance(self.current_token, (_i32_const,
+                                            _i32_add, 
+                                                            # TODO: wait for using WASM_INSTRUCTIONS directly
+                                            _local_get, 
+                                            _local_set,
+                                            _global_get,
+                                            _global_set, 
+                                            _call, 
+                                            _return)):
             op = type(self.current_token).__name__[1:].replace('_', '.')
             self.next_token()
             
