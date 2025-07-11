@@ -4,6 +4,7 @@ import pprint
 
 
 
+
 wat_code = """
     (module
         (func $add (param $a i32) (param $b i32) (result i32)
