@@ -2,21 +2,30 @@
 import re
 
 class Module:
-    def __init__(self, funcs=None):
+    def __init__(self, mems=None, funcs=None):
+        self.mems = mems if mems else []
         self.funcs = funcs if funcs else []
     
     def __repr__(self):
+        mems_str = "\n".join(f"  {repr(m)}" for m in self.mems)
         funcs_str = "\n".join(f"  {repr(f)}" for f in self.funcs)
-        return f"Module:\n{funcs_str}"
-
-class Func:
-    def __init__(self, name=None, params=None, results=None, locals=None, body=None):
+        return f"Module:\n{mems_str}\n{funcs_str}"
+        
+class Memory:
+    def __init__(self, name=None, value=None):
         self.name = name
+        self.value = value
+    def __repr__(self): return f"Memory: {self.name} {self.value})"
+    
+class Func:
+    def __init__(self, name=None, export_name = None, params=None, results=None, locals=None, body=None):
+        self.name = name
+        self.export_name = export_name
         self.params = params if params else []
         self.results = results if results else []
         self.locals = locals if locals else []
         self.body = body if body else []
-    
+        
     def __repr__(self):
         parts = []
         if self.name:
@@ -32,7 +41,7 @@ class Func:
         if self.body:
             parts.append("  body:")
             parts.extend(f"    {i}" for i in self.body)
-        return "Func:\n" + "\n".join(parts)
+        return "Func:\n" + "\n  ".join(parts)
 
 class Instruction:
     def __init__(self, op, operands=None):
@@ -47,8 +56,8 @@ class Instruction:
                 operands_str.append(op.__repr__(indent+1))
             else:
                 operands_str.append(f"{indent_str}  {op}")
-        operands = "\n".join(operands_str)
-        return f"{indent_str}{self.op}:\n{operands}"
+        operands = "\n    ".join(operands_str)
+        return f"{indent_str}{self.op}:  {operands}"
 
 
 
@@ -100,7 +109,7 @@ class EOF:
 class Result: pass
 # class Local: pass
 class Export: pass
-class Memory: pass
+# class Memory: pass
 class Data: pass
 # class Type: pass
 
@@ -118,10 +127,19 @@ class Data: pass
 class _i32_const: 
     def __repr__(self): return "_i32_const"
 class _i32_add: pass
+
+class _i32_sub: pass
+class _i32_mul: pass
+class _i32_div_s: pass
+class _i32_ge_u: pass
+class _i32_gt_s: pass
+
 class _local_get: pass
 class _local_set: pass
+class _local_tee: pass
 class _global_get: pass
 class _global_set: pass
+
 class _call: pass
 class _return: pass
 
