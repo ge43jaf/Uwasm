@@ -3,10 +3,19 @@ from Lexer import (
     Module, Func, Param, Result, Local, Export, Memory, Instruction,
     _i32_const, 
     _i32_add, 
+    _i32_sub,
+    _i32_mul,
+    _i32_div_s,
+    _i32_ge_u,
+    _i32_gt_s,
+    
     _local_get, 
     _local_set,
+    _local_tee,
     _global_get, 
     _global_set, 
+    
+    
     _call,
     _return
 )
@@ -16,13 +25,15 @@ class Parser:
         self.current_token = None
         self.token_index = 0
         self.tokens = []
-        
+        self.module = None
+        # self.funcs = []
     
     def next_token(self):
         self.token_index += 1
         if self.token_index < len(self.tokens):
             self.current_token = self.tokens[self.token_index]
         else:
+            print("Parser index Error")
             self.current_token = None
         return self.current_token
         
@@ -36,7 +47,6 @@ class Parser:
         return self.parse_module()
     
     
-    
     def parse_module(self):
         if not isinstance(self.current_token, LPAREN):
             print("Expected '(' at start of module")
@@ -47,7 +57,7 @@ class Parser:
             print("Expected 'module' keyword")
             return None
         
-        module = Module(funcs=[])
+        self.module = Module(mems=[], funcs=[])
         self.next_token()
         
         while not isinstance(self.current_token, RPAREN):
@@ -61,7 +71,7 @@ class Parser:
                     func = self.parse_func()
                     if func is None:
                         return None
-                    module.funcs.append(func)
+                    self.module.funcs.append(func)
                 elif isinstance(self.current_token, Export):
                     if not self.parse_export():
                         return None
@@ -81,7 +91,7 @@ class Parser:
                 return None
         
         self.next_token()
-        return module
+        return self.module
     
     def parse_func(self):
         func = Func()
@@ -98,7 +108,14 @@ class Parser:
                 return None
             
             self.next_token()
-            if isinstance(self.current_token, Param):
+            if isinstance(self.current_token, Export):
+                self.next_token()
+                if not isinstance(self.current_token, STRING):
+                    print("Expected export name to be a string in function signature")
+                    return None
+                func.export_name = self.current_token
+                self.next_token()
+            elif isinstance(self.current_token, Param):
                 param = self.parse_param()
                 if param is None:
                     return None
@@ -210,16 +227,69 @@ class Parser:
     
     def parse_export(self):
         self.next_token()
-        # Simplified export parsing
-        while not isinstance(self.current_token, RPAREN):
-            self.next_token()
+        if self.current_token is None:
+            print("Unexpected EOF in export")
+            return None
+        if isinstance(self.current_token, LPAREN):
+            print("Unexpected token ')' in export")
+            return None
+
+        if not isinstance(self.current_token, STRING):
+            print("Expected export name to be a string")
+            return None
+        
+        self.next_token()   
+        if not isinstance(self.current_token, LPAREN):
+            print("Expected '(' after export name")
+            return None
+            
         self.next_token()
-        return True
+        # print(self.current_token)
+        if not isinstance(self.current_token, Func):
+            print("Expected 'func' after '(' in export")
+            return None
+        
+        self.next_token()
+        # print(self.current_token)
+        if not isinstance(self.current_token, ID):
+            print("Expected funcction name after 'func' in export")
+            return None
+        func_name_registered = False
+        ret_func = Func()
+        for func in self.module.funcs:
+            if self.current_token.value == func.name:
+                func_name_registered = True
+                ret_func = func
+        if not func_name_registered:
+            print("Function name not registered in export")
+            return None
+        self.next_token()
+        if not isinstance(self.current_token, RPAREN):
+            print("Expected token ')' after function name in export")
+            return None
+        self.next_token()
+        if not isinstance(self.current_token, RPAREN):
+            print("Expected token ')' in export")
+            return None
+    
+        return ret_func
     
     def parse_memory(self):
+        mem = Memory()
         self.next_token()
-        # Simplified memory parsing
-        while not isinstance(self.current_token, RPAREN):
-            self.next_token()
+        # mem_name = None
+        if not isinstance(self.current_token, ID):
+            print("Expected memory name after 'mem'")
+            return None
+        mem.name = self.current_token.value
+        self.next_token() 
+        if not isinstance(self.current_token, CONST):
+            print("Expected a CONST after memory name")
+            return None
+        mem.value = self.current_token
+        self.module.mems.append(mem)
         self.next_token()
-        return True
+        if not isinstance(self.current_token, RPAREN):
+            print("Expected token ')' in memory")
+            return None
+        return mem
