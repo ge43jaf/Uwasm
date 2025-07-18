@@ -41,10 +41,10 @@ class Func:
         if self.body:
             parts.append("  body:")
             parts.extend(f"    {i}" for i in self.body)
-        return "Func:\n" + "\n  ".join(parts)
+        return "Func:\n  " + "\n  ".join(parts)
 
 class Instruction:
-    def __init__(self, op, operands=None):
+    def __init__(self, op=None, operands=None):
         self.op = op
         self.operands = operands if operands else []
     
@@ -58,8 +58,6 @@ class Instruction:
                 operands_str.append(f"{indent_str}  {op}")
         operands = "\n    ".join(operands_str)
         return f"{indent_str}{self.op}:  {operands}"
-
-
 
 
 class Param:
@@ -123,8 +121,11 @@ class Data: pass
 #     def __repr__(self):
 #         operands_str = ", ".join(repr(op) for op in self.operands)
 #         return f"Instr({self.op}, [{operands_str}])"
-        
-class _i32_const: 
+
+class ControlFlowInstruction(Instruction):
+    pass
+
+class _i32_const(Instruction): 
     def __repr__(self): return "_i32_const"
 class _i32_add: pass
 
@@ -140,8 +141,15 @@ class _local_tee: pass
 class _global_get: pass
 class _global_set: pass
 
-class _call: pass
+class _call(ControlFlowInstruction): pass
 class _return: pass
+class _nop(ControlFlowInstruction): pass
+class _block(ControlFlowInstruction): pass
+class _loop(ControlFlowInstruction): pass
+class _br: pass
+class _br_if: pass
+class _if(ControlFlowInstruction): pass
+
 
 # Keyword and Instruction Sets
 KEYWORDS = {
@@ -152,7 +160,6 @@ KEYWORDS = {
 WASM_INSTRUCTIONS = {
 
             # TODO : Further refinement
-
             # Numeric instructions
             'i32.const': 1,
             'i32.add': 0,
@@ -260,6 +267,8 @@ class Lexer:
                 lexeme = self.input[start:self.pos]
                 
                 token_class = self.get_token_class(lexeme)
+                # print('test token_class: ' + str(token_class))
+                # return None
                 if token_class:
                     self.tokens.append(token_class())       # Passing parameters here?
                     
@@ -273,4 +282,6 @@ class Lexer:
                 return None
         
         self.tokens.append(EOF())
+        
+        
         return self.tokens
