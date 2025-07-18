@@ -85,7 +85,7 @@ class Parser:
                     if not self.parse_memory():
                         return None
                 else:
-                    print(f"Unexpected token in module: {self.current_token}")
+                    print(f"Unexpected token in module: {self.current_token} after (")
                     return None
                 
                 if not isinstance(self.current_token, RPAREN):
@@ -140,16 +140,47 @@ class Parser:
                     if local is None:
                         return None
                     func.locals.append(local)
-                else:
+                
+                elif isinstance(self.current_token, ControlFlowInstruction):
+                    print('ControlFlowInstruction :  ' + str(type(self.current_token)))
+                
+                    if isinstance(self.current_token, _nop):
+                        self.next_token()
+                        continue
+                    elif isinstance(self.current_token, _block):
+                        break
+                    elif isinstance(self.current_token, _loop):
+                        break
+                    elif isinstance(self.current_token, _br):
+                        break
+                    elif isinstance(self.current_token, _br_if):
+                        break
+                    elif isinstance(self.current_token, _if):
+                        break
+                    elif isinstance(self.current_token, _call):
+                        break
+                    elif isinstance(self.current_token, _return):
+                        break
+                    else:
+                        print("Is ControlFlowInstruction {self.current_token} but not found!")
+                        break
+                    
+                elif isinstance(self.current_token, Instruction):
+                    print('func (...) (...) (... ' + str(type(self.current_token)))
                     instr = self.parse_instruction()
                     if instr is None:
                         return None
                     func.body.append(instr)
-                
+                    
+                else:
+                    print(f"Instruction {self.current_token} in function {func.name} not found!")
+                    break
+            
                 if not isinstance(self.current_token, RPAREN):
                     print("Expected ')' after func element")
                     return None
                 self.next_token()
+                
             elif isinstance(self.current_token, ControlFlowInstruction):
                 print('ControlFlowInstruction :  ' + str(type(self.current_token)))
                 
@@ -166,16 +197,26 @@ class Parser:
                     break
                 elif isinstance(self.current_token, _if):
                     break
+                elif isinstance(self.current_token, _call):
+                    break
+                elif isinstance(self.current_token, _return):
+                    break
                 else:
                     print("Is ControlFlowInstruction {self.current_token} but not found!")
                     break
                 
             elif isinstance(self.current_token, Instruction):
-                print(type(self.current_token))
-                break
+                print('Currrent Instruction without (...) surrounded' + str(type(self.current_token)))
+                continue
             else:
-                print("Instruction {self.current_token} in function {func.name} not found!")
+                print(f"Instruction {self.current_token} in function {func.name} not found!")
                 break
+            
+        print('After looping: ' + str(self.current_token))
+        if not isinstance(self.current_token, RPAREN):
+            print("Expected ')' after all func elements")
+            return None
+            
         return func
     
     def parse_param(self):
@@ -224,49 +265,53 @@ class Parser:
             return None
     
     def parse_instruction(self):
-        if isinstance(self.current_token, (_i32_const,
-                                            _i32_add, 
-                                                            # TODO: wait for using WASM_INSTRUCTIONS directly
-                                            _i32_sub,
-                                            _i32_mul,
-                                            _i32_div_s,
-                                            _i32_ge_u,
-                                            _i32_gt_s,
+        # if isinstance(self.current_token, (_i32_const,
+        #                                     _i32_add, 
+        #                                                     # TODO: wait for using WASM_INSTRUCTIONS directly
+        #                                     _i32_sub,
+        #                                     _i32_mul,
+        #                                     _i32_div_s,
+        #                                     _i32_ge_u,
+        #                                     _i32_gt_s,
     
-                                            _local_get, 
-                                            _local_set,
-                                            _local_tee,
-                                            _global_get, 
-                                            _global_set, 
+        #                                     _local_get, 
+        #                                     _local_set,
+        #                                     _local_tee,
+        #                                     _global_get, 
+        #                                     _global_set, 
                                             
-                                            _call, 
-                                            _return)):
-            op = type(self.current_token).__name__[1:].replace('_', '.')
-            self.next_token()
+        #                                     _call, 
+        #                                     _return)):
+        
+        op = type(self.current_token).__name__[1:].replace('_', '.')
+        
+        self.next_token()
             
-            operands = []
-            while not isinstance(self.current_token, RPAREN):
-                if isinstance(self.current_token, (CONST, ID)):
-                    operands.append(self.current_token.value)
-                    self.next_token()
-                elif isinstance(self.current_token, LPAREN):
-                    self.next_token()
-                    nested_instr = self.parse_instruction()
-                    if nested_instr is None:
-                        return None
-                    operands.append(nested_instr)
-                    if not isinstance(self.current_token, RPAREN):
-                        print("Expected ')' after nested instruction")
-                        return None
-                    self.next_token()
-                else:
-                    print(f"Unexpected token in instruction: {self.current_token}")
+        operands = []
+        while not isinstance(self.current_token, RPAREN):
+            if isinstance(self.current_token, (CONST, ID)):
+                operands.append(self.current_token.value)
+                
+            elif isinstance(self.current_token, LPAREN):
+                self.next_token()
+                nested_instr = self.parse_instruction()
+                if nested_instr is None:
                     return None
-            
-            return Instruction(op, operands)
-        else:
-            print(f"Unknown instruction: {self.current_token}")
-            return None
+                operands.append(nested_instr)
+                if not isinstance(self.current_token, RPAREN):
+                    print("Expected ')' after nested instruction")
+                    return None
+            else:
+                print(f"Unexpected token in instruction: {self.current_token}")
+                return None
+                
+            self.next_token()
+        
+        print(f'In parse_instruction : {Instruction(op, operands)}')
+        return Instruction(op, operands)
+        # else:
+        #     print(f"Unknown instruction: {self.current_token}")
+        #     return None
     
     def parse_export(self):
         self.next_token()
