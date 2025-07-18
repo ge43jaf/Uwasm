@@ -16,6 +16,11 @@ class Memory:
         self.name = name
         self.value = value
     def __repr__(self): return f"Memory: {self.name} {self.value})"
+
+class Export:
+    def __init__(self, value=None):
+        self.value = value
+    def __repr__(self): return f"Export: {self.value})"
     
 class Func:
     def __init__(self, name=None, export_name = None, params=None, results=None, locals=None, body=None):
@@ -82,7 +87,7 @@ class RPAREN:
     def __repr__(self): return "RPAREN()"
 
 class ID:
-    def __init__(self, value): self.value = value
+    def __init__(self, value=None): self.value = value
     def __repr__(self): return f"ID({self.value})"
 
 class TYPE:
@@ -106,7 +111,7 @@ class EOF:
 # class Param: pass
 class Result: pass
 # class Local: pass
-class Export: pass
+# class Export: pass
 # class Memory: pass
 class Data: pass
 # class Type: pass
@@ -127,7 +132,7 @@ class ControlFlowInstruction(Instruction):
 
 class _i32_const(Instruction): 
     def __repr__(self): return "_i32_const"
-class _i32_add: pass
+class _i32_add(Instruction): pass
 
 class _i32_sub: pass
 class _i32_mul: pass
@@ -135,7 +140,9 @@ class _i32_div_s: pass
 class _i32_ge_u: pass
 class _i32_gt_s: pass
 
-class _local_get: pass
+class _local_get(Instruction):
+    def __init__(self, value=None): self.value = value
+    def __repr__(self): return f"_local_get({self.value})"
 class _local_set: pass
 class _local_tee: pass
 class _global_get: pass
@@ -267,7 +274,7 @@ class Lexer:
                 lexeme = self.input[start:self.pos]
                 
                 token_class = self.get_token_class(lexeme)
-                # print('test token_class: ' + str(token_class))
+                print('test token_class: ' + str(token_class))
                 # return None
                 if token_class:
                     self.tokens.append(token_class())       # Passing parameters here?
