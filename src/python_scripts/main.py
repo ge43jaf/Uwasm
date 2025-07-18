@@ -21,6 +21,10 @@ wat_code = """
             (call $getAnswer)
             (i32.const 1)
             (i32.add))
+        (func $qwe
+            nop
+            
+        )
     )
     """
     
@@ -31,11 +35,11 @@ tokens = lexer.tokenize(wat_code)
 if tokens is None:
     print("Lexical analysis failed")
 
-    
 print("Tokens:")
 for token in tokens:
     print(token)
-    
+
+
 ast = parser.parse(tokens)
 if ast is None:
     print("Parsing failed")
