@@ -1,6 +1,7 @@
 from Lexer import (
     LPAREN, RPAREN, ID, TYPE, CONST, STRING, EOF,
-    Module, Func, Param, Result, Local, Export, Memory, Instruction,
+    Module, Func, Param, Result, Local, Export, Memory, 
+    Instruction, ControlFlowInstruction,
     _i32_const, 
     _i32_add, 
     _i32_sub,
@@ -15,9 +16,14 @@ from Lexer import (
     _global_get, 
     _global_set, 
     
-    
     _call,
-    _return
+    _return,
+    _nop,
+    _block,
+    _loop,
+    _br,
+    _br_if,
+    _if
 )
 
 class Parser:
@@ -101,46 +107,75 @@ class Parser:
             func.name = self.current_token.value
             self.next_token()
         
+        # TODO: Parse params ... first, then instructions check
+        
         # (...) (...) (...)
         while not isinstance(self.current_token, RPAREN):
-            if not isinstance(self.current_token, LPAREN):
-                print(f"Unexpected token in func: {self.current_token}")
-                return None
+            # if not isinstance(self.current_token, LPAREN):
+            #     print(f"Unexpected token in func: {self.current_token}")
+            #     return None
             
-            self.next_token()
-            if isinstance(self.current_token, Export):
+            if isinstance(self.current_token, LPAREN):
+                
                 self.next_token()
-                if not isinstance(self.current_token, STRING):
-                    print("Expected export name to be a string in function signature")
+                if isinstance(self.current_token, Export):
+                    self.next_token()
+                    if not isinstance(self.current_token, STRING):
+                        print("Expected export name to be a string in function signature")
+                        return None
+                    func.export_name = self.current_token
+                    self.next_token()
+                elif isinstance(self.current_token, Param):
+                    param = self.parse_param()
+                    if param is None:
+                        return None
+                    func.params.append(param)
+                elif isinstance(self.current_token, Result):
+                    result = self.parse_result()
+                    if result is None:
+                        return None
+                    func.results.append(result)
+                elif isinstance(self.current_token, Local):
+                    local = self.parse_local()
+                    if local is None:
+                        return None
+                    func.locals.append(local)
+                else:
+                    instr = self.parse_instruction()
+                    if instr is None:
+                        return None
+                    func.body.append(instr)
+                
+                if not isinstance(self.current_token, RPAREN):
+                    print("Expected ')' after func element")
                     return None
-                func.export_name = self.current_token
                 self.next_token()
-            elif isinstance(self.current_token, Param):
-                param = self.parse_param()
-                if param is None:
-                    return None
-                func.params.append(param)
-            elif isinstance(self.current_token, Result):
-                result = self.parse_result()
-                if result is None:
-                    return None
-                func.results.append(result)
-            elif isinstance(self.current_token, Local):
-                local = self.parse_local()
-                if local is None:
-                    return None
-                func.locals.append(local)
+            elif isinstance(self.current_token, ControlFlowInstruction):
+                print('ControlFlowInstruction :  ' + str(type(self.current_token)))
+                
+                if isinstance(self.current_token, _nop):
+                    self.next_token()
+                    continue
+                elif isinstance(self.current_token, _block):
+                    break
+                elif isinstance(self.current_token, _loop):
+                    break
+                elif isinstance(self.current_token, _br):
+                    break
+                elif isinstance(self.current_token, _br_if):
+                    break
+                elif isinstance(self.current_token, _if):
+                    break
+                else:
+                    print("Is ControlFlowInstruction {self.current_token} but not found!")
+                    break
+                
+            elif isinstance(self.current_token, Instruction):
+                print(type(self.current_token))
+                break
             else:
-                instr = self.parse_instruction()
-                if instr is None:
-                    return None
-                func.body.append(instr)
-            
-            if not isinstance(self.current_token, RPAREN):
-                print("Expected ')' after func element")
-                return None
-            self.next_token()
-        
+                print("Instruction {self.current_token} in function {func.name} not found!")
+                break
         return func
     
     def parse_param(self):
@@ -192,10 +227,18 @@ class Parser:
         if isinstance(self.current_token, (_i32_const,
                                             _i32_add, 
                                                             # TODO: wait for using WASM_INSTRUCTIONS directly
+                                            _i32_sub,
+                                            _i32_mul,
+                                            _i32_div_s,
+                                            _i32_ge_u,
+                                            _i32_gt_s,
+    
                                             _local_get, 
                                             _local_set,
-                                            _global_get,
+                                            _local_tee,
+                                            _global_get, 
                                             _global_set, 
+                                            
                                             _call, 
                                             _return)):
             op = type(self.current_token).__name__[1:].replace('_', '.')
