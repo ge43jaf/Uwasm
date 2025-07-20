@@ -63,7 +63,7 @@ class Parser:
             print("Expected 'module' keyword")
             return None
         
-        self.module = Module(mems=[], funcs=[])
+        self.module = Module(mems=[], funcs=[], exports=[])
         self.next_token()
         
         while not isinstance(self.current_token, RPAREN):
@@ -79,11 +79,21 @@ class Parser:
                         return None
                     self.module.funcs.append(func)
                 elif isinstance(self.current_token, Export):
-                    if not self.parse_export():
+                    export = self.parse_export()
+                    if export is None :
                         return None
+
+                    self.module.exports.append(export)
+                    print(f"test_export : {export}")
+
                 elif isinstance(self.current_token, Memory):
-                    if not self.parse_memory():
+
+                    mem = self.parse_memory()
+                    if mem is None :
                         return None
+                    self.module.mems.append(mem)
+                    print(f"test_mem : {mem}")
+
                 else:
                     print(f"Unexpected token in module: {self.current_token} after (")
                     return None
@@ -148,6 +158,7 @@ class Parser:
                         self.next_token()
                         continue
                     elif isinstance(self.current_token, _block):
+                        block = self.parse_control_flow()
                         break
                     elif isinstance(self.current_token, _loop):
                         break
@@ -175,7 +186,9 @@ class Parser:
                 else:
                     print(f"Instruction {self.current_token} in function {func.name} not found!")
                     break
-            
+                
+
+                # Check closing parenthesis for this if branch
                 if not isinstance(self.current_token, RPAREN):
                     print("Expected ')' after func element")
                     return None
@@ -188,6 +201,9 @@ class Parser:
                     self.next_token()
                     continue
                 elif isinstance(self.current_token, _block):
+                    block = self.parse_block()
+
+
                     break
                 elif isinstance(self.current_token, _loop):
                     break
@@ -264,6 +280,125 @@ class Parser:
             print("Expected result type")
             return None
     
+    def parse_control_flow(self):
+        op = type(self.current_token).__name__[1:].replace('_', '.')
+        self.next_token()
+
+        operands = []
+        block_type = None
+        instructions = []
+        
+        # Handle different control flow instructions
+        if op in ['block', 'loop', 'if']:
+            
+            # Parse instructions until closing parenthesis
+            while not isinstance(self.current_token, RPAREN):
+                if isinstance(self.current_token, LPAREN):
+                    self.next_token()
+                    if isinstance(self.current_token, ControlFlowInstruction):
+                        nested_instr = self.parse_control_flow()
+                        if nested_instr is None:
+                            return None
+                        instructions.append(nested_instr)
+                    else:
+                        nested_instr = self.parse_instruction()
+                        if nested_instr is None:
+                            return None
+                        instructions.append(nested_instr)
+                    
+                    if not isinstance(self.current_token, RPAREN):
+                        print("Expected ')' after nested instruction")
+                        return None
+                    self.next_token()
+                else:
+                    # Handle immediate values
+                    if isinstance(self.current_token, (CONST, ID)):
+                        operands.append(self.current_token.value)
+                        self.next_token()
+                    else:
+                        break
+            
+            # For 'if' instruction, handle else branch
+            if op == 'if' and isinstance(self.current_token, LPAREN):
+                self.next_token()
+                if isinstance(self.current_token, _else):
+                    self.next_token()
+                    else_instructions = []
+                    
+                    while not isinstance(self.current_token, RPAREN):
+                        if isinstance(self.current_token, LPAREN):
+                            self.next_token()
+                            nested_instr = self.parse_instruction()
+                            if nested_instr is None:
+                                return None
+                            else_instructions.append(nested_instr)
+                            
+                            if not isinstance(self.current_token, RPAREN):
+                                print("Expected ')' after else instruction")
+                                return None
+                            self.next_token()
+                        else:
+                            break
+                    
+                    return Instruction(op, {
+                        'then': instructions,
+                        'else': else_instructions
+                    })
+        
+        elif op == 'br_if':
+            # Parse branch target (label index)
+            if isinstance(self.current_token, (CONST, ID)):
+                operands.append(self.current_token.value)
+                self.next_token()
+            else:
+                print("Expected branch target for br_if")
+                return None
+        
+        elif op == 'call':
+            # Parse function index or name
+            if isinstance(self.current_token, (CONST, ID)):
+                operands.append(self.current_token.value)
+                self.next_token()
+            else:
+                print("Expected function index/name for call")
+                return None
+            
+            # Parse call arguments
+            while not isinstance(self.current_token, RPAREN):
+                if isinstance(self.current_token, LPAREN):
+                    self.next_token()
+                    nested_instr = self.parse_instruction()
+                    if nested_instr is None:
+                        return None
+                    operands.append(nested_instr)
+                    
+                    if not isinstance(self.current_token, RPAREN):
+                        print("Expected ')' after call argument")
+                        return None
+                    self.next_token()
+                else:
+                    break
+        
+        elif op == 'return':
+            # No operands needed, just consume any values on stack
+            pass
+        
+        # Create the instruction
+        if op in ['block', 'loop']:
+            return Instruction(op, {
+                'body': instructions
+            })
+        elif op == 'if':
+            return Instruction(op, {
+                'then': instructions,
+                'else': []  # Will be filled if there's an else branch
+            })
+        else:
+            return Instruction(op, operands)
+
+
+
+
     def parse_instruction(self):
         # if isinstance(self.current_token, (_i32_const,
         #                                     _i32_add, 
@@ -314,6 +449,7 @@ class Parser:
         #     return None
     
     def parse_export(self):
+        export = Export()
         self.next_token()
         if self.current_token is None:
             print("Unexpected EOF in export")
@@ -326,6 +462,7 @@ class Parser:
             print("Expected export name to be a string")
             return None
         
+        export.value = self.current_token
         self.next_token()   
         if not isinstance(self.current_token, LPAREN):
             print("Expected '(' after export name")
@@ -342,15 +479,17 @@ class Parser:
         if not isinstance(self.current_token, ID):
             print("Expected funcction name after 'func' in export")
             return None
-        func_name_registered = False
-        ret_func = Func()
-        for func in self.module.funcs:
-            if self.current_token.value == func.name:
-                func_name_registered = True
-                ret_func = func
-        if not func_name_registered:
-            print("Function name not registered in export")
-            return None
+        # func_name_registered = False
+        exp_func = Func(self.current_token)
+        # for func in self.module.funcs:
+        #     if self.current_token.value == func.name:
+        #         func_name_registered = True
+        #         exp_func = func
+        # if not func_name_registered:
+        #     print("Function name not registered in export")
+        #     return None
+
+        export.exp_func = exp_func
         self.next_token()
         if not isinstance(self.current_token, RPAREN):
             print("Expected token ')' after function name in export")
@@ -359,8 +498,8 @@ class Parser:
         if not isinstance(self.current_token, RPAREN):
             print("Expected token ')' in export")
             return None
-    
-        return ret_func
+        
+        return export
     
     def parse_memory(self):
         mem = Memory()
@@ -375,7 +514,7 @@ class Parser:
             print("Expected a CONST after memory name")
             return None
         mem.value = self.current_token
-        self.module.mems.append(mem)
+        # self.module.mems.append(mem)
         self.next_token()
         if not isinstance(self.current_token, RPAREN):
             print("Expected token ')' in memory")

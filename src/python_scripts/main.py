@@ -27,7 +27,14 @@ wat_code = """
         )
     )
     """
-    
+
+try:
+    with open('../tests/success/test_block.wat', 'r') as file:
+        wat_code = file.read()
+except FileNotFoundError:
+    wat_code = "Error: File '../test/success' not found."
+
+print(wat_code)
 lexer = Lexer()
 parser = Parser()
     
