@@ -3,7 +3,9 @@
   (export "foo" (func $foo))
   (func $foo (param $a i32)
     (block
-      (block)
+      (block
+        (block)
+      )
     )
   )
   

@@ -155,10 +155,14 @@ class Parser:
                     print('ControlFlowInstruction :  ' + str(type(self.current_token)))
                 
                     if isinstance(self.current_token, _nop):
+                        func.body.append(_nop)
                         self.next_token()
                         continue
                     elif isinstance(self.current_token, _block):
                         block = self.parse_control_flow()
+                        if block is None:
+                            return next_token
+                        func.body.append(block)
                         break
                     elif isinstance(self.current_token, _loop):
                         break
@@ -281,17 +285,19 @@ class Parser:
             return None
     
     def parse_control_flow(self):
+
+        # control_flow_instr = ControlFlowInstruction()
+
         op = type(self.current_token).__name__[1:].replace('_', '.')
         self.next_token()
 
         operands = []
-        block_type = None
-        instructions = []
+        # instructions = []
         
-        # Handle different control flow instructions
+        # 3 ControlFlowInstructions with nested loop possibilities
         if op in ['block', 'loop', 'if']:
             
-            # Parse instructions until closing parenthesis
+            # Parse operands/instructions until closing parenthesis
             while not isinstance(self.current_token, RPAREN):
                 if isinstance(self.current_token, LPAREN):
                     self.next_token()
@@ -299,13 +305,15 @@ class Parser:
                         nested_instr = self.parse_control_flow()
                         if nested_instr is None:
                             return None
-                        instructions.append(nested_instr)
-                    else:
+                        operands.append(nested_instr)
+                    elif isinstance(self.current_token, Instruction):
                         nested_instr = self.parse_instruction()
                         if nested_instr is None:
                             return None
-                        instructions.append(nested_instr)
-                    
+                        operands.append(nested_instr)
+                    else:
+                        print('Other options in parse_control_flow???')
+
                     if not isinstance(self.current_token, RPAREN):
                         print("Expected ')' after nested instruction")
                         return None
@@ -323,7 +331,7 @@ class Parser:
                 self.next_token()
                 if isinstance(self.current_token, _else):
                     self.next_token()
-                    else_instructions = []
+                    else_operands = []
                     
                     while not isinstance(self.current_token, RPAREN):
                         if isinstance(self.current_token, LPAREN):
@@ -331,7 +339,7 @@ class Parser:
                             nested_instr = self.parse_instruction()
                             if nested_instr is None:
                                 return None
-                            else_instructions.append(nested_instr)
+                            else_operands.append(nested_instr)
                             
                             if not isinstance(self.current_token, RPAREN):
                                 print("Expected ')' after else instruction")
@@ -340,19 +348,15 @@ class Parser:
                         else:
                             break
                     
-                    return Instruction(op, {
-                        'then': instructions,
-                        'else': else_instructions
+                    return ControlFlowInstruction(op, {
+                        'then': operands,
+                        'else': else_operands
                     })
         
         elif op == 'br_if':
-            # Parse branch target (label index)
-            if isinstance(self.current_token, (CONST, ID)):
-                operands.append(self.current_token.value)
-                self.next_token()
-            else:
-                print("Expected branch target for br_if")
-                return None
+            
+            print("Expected implementation for br_if parser")
+            return None
         
         elif op == 'call':
             # Parse function index or name
@@ -385,16 +389,14 @@ class Parser:
         
         # Create the instruction
         if op in ['block', 'loop']:
-            return Instruction(op, {
-                'body': instructions
-            })
+            return ControlFlowInstruction(op, operands)
         elif op == 'if':
-            return Instruction(op, {
-                'then': instructions,
+            return ControlFlowInstruction(op, {
+                'then': operands,
                 'else': []  # Will be filled if there's an else branch
             })
         else:
-            return Instruction(op, operands)
+            return ControlFLowInstruction(op, operands)
 
 
 

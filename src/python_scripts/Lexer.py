@@ -8,6 +8,10 @@ class Module:
         self.exports = exports if exports else []
 
     def __repr__(self):
+
+        # TODO : Refinement, whether it's catogrized in mems, funcs, and exports; 
+        #       or according to the definition order in wat code
+
         mems_str = "\n".join(f"  {repr(m)}" for m in self.mems)
         funcs_str = "\n".join(f"  {repr(f)}" for f in self.funcs)
         exports_str = "\n".join(f"  {repr(e)}" for e in self.exports)
@@ -132,8 +136,22 @@ class Data: pass
 #         return f"Instr({self.op}, [{operands_str}])"
 
 class ControlFlowInstruction(Instruction):
-    pass
+    # def __repr__(self):
+    #     return super(Instruction, self).__repr__()
+    
+    # pass
 
+    def __repr__(self, indent=0):
+        indent_str = "  " * indent
+        operands_str = []
+        for op in self.operands:
+            if isinstance(op, Instruction):
+                operands_str.append(op.__repr__(indent+1))
+            else:
+                operands_str.append(f"{indent_str}  {op}")
+        operands = "\n    ".join(operands_str)
+        return f"{indent_str}{self.op}:  {operands}"
+        
 class _i32_const(Instruction): 
     def __repr__(self): return "_i32_const"
 class _i32_add(Instruction): pass
@@ -155,7 +173,10 @@ class _global_set: pass
 class _call(ControlFlowInstruction): pass
 class _return: pass
 class _nop(ControlFlowInstruction): pass
-class _block(ControlFlowInstruction): pass
+class _block(ControlFlowInstruction):
+    # def __repr__(self): return "_block"     # Definition still necessory in subclass
+    def __repr__(self):
+        return super(Instruction, self).__repr__()
 class _loop(ControlFlowInstruction): pass
 class _br: pass
 class _br_if: pass
