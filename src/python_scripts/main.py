@@ -29,7 +29,7 @@ wat_code = """
     """
 
 try:
-    with open('../tests/success/test_block.wat', 'r') as file:
+    with open('../tests/success/test_loooooooooooooop.wat', 'r') as file:
         wat_code = file.read()
 except FileNotFoundError:
     wat_code = "Error: File '../test/success' not found."

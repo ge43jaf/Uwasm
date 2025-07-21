@@ -141,17 +141,24 @@ class ControlFlowInstruction(Instruction):
     
     # pass
 
+                # __init__ will automatically inherated?
+    # def __init__(self, op=None, operands=None):
+    #     self.op = op
+    #     self.operands = operands if operands else []
+
     def __repr__(self, indent=0):
         indent_str = "  " * indent
         operands_str = []
         for op in self.operands:
             if isinstance(op, Instruction):
-                operands_str.append(op.__repr__(indent+1))
+                operands_str.append(f"\n      {op.__repr__(indent+1)}")
             else:
                 operands_str.append(f"{indent_str}  {op}")
+        print(f'operands_str inside Class ControlFlowInstruction : {operands_str}')
         operands = "\n    ".join(operands_str)
+        # print(f'operands inside Class ControlFlowInstruction : {operands}')
         return f"{indent_str}{self.op}:  {operands}"
-        
+
 class _i32_const(Instruction): 
     def __repr__(self): return "_i32_const"
 class _i32_add(Instruction): pass
@@ -177,9 +184,11 @@ class _block(ControlFlowInstruction):
     # def __repr__(self): return "_block"     # Definition still necessory in subclass
     def __repr__(self):
         return super(Instruction, self).__repr__()
-class _loop(ControlFlowInstruction): pass
-class _br: pass
-class _br_if: pass
+class _loop(ControlFlowInstruction):
+    def __repr__(self):
+        return super(Instruction, self).__repr__()
+class _br(ControlFlowInstruction): pass
+class _br_if(ControlFlowInstruction): pass
 class _if(ControlFlowInstruction): pass
 
 
