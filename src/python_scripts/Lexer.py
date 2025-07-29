@@ -159,6 +159,33 @@ class ControlFlowInstruction(Instruction):
         # print(f'operands inside Class ControlFlowInstruction : {operands}')
         return f"{indent_str}{self.op}:  {operands}"
 
+class BinaryInstruction(Instruction):
+    
+    def __init__(self, op=None, operand1=None, operand2=None):
+        self.op = op
+        self.operand1 = operand1
+        self.operand2 = operand2
+        return f"{self.operand1} {self.op} {self.operand2}"
+        
+        
+    def __repr__(self, indent=0):
+        indent_str = "  " * indent
+        operands_str = []
+        
+        if isinstance(operand1, Instruction):
+            operands_str.append(operand1.__repr__(indent+1))
+        else:
+            operands_str.append(f"{indent_str}  {operand1}")
+        
+        if isinstance(operand2, Instruction):
+            operands_str.append(operand2.__repr__(indent+1))
+        else:
+            operands_str.append(f"{indent_str}  {operand2}")
+            
+        operands = "\n    ".join(operands_str)
+        # return f"{indent_str}{self.op}:  {operands}"
+        return f"{indent_str}{self.operand1} {self.op} {self.operand2}"
+        
 class _i32_const(Instruction): 
     def __repr__(self): return "_i32_const"
 class _i32_add(Instruction): pass
@@ -178,7 +205,7 @@ class _global_get: pass
 class _global_set: pass
 
 class _call(ControlFlowInstruction): pass
-class _return: pass
+class _return(ControlFlowInstruction): pass
 class _nop(ControlFlowInstruction): pass
 class _block(ControlFlowInstruction):
     # def __repr__(self): return "_block"     # Definition still necessory in subclass
