@@ -32,7 +32,7 @@ try:
     with open('../tests/success/test_loooooooooooooop.wat', 'r') as file:
         wat_code = file.read()
 except FileNotFoundError:
-    wat_code = "Error: File '../test/success' not found."
+    print("Error: File '../test/success' not found.")
 
 print(wat_code)
 lexer = Lexer()
