@@ -282,10 +282,19 @@ class Parser:
 
         elif isinstance(self.current_token, _br_if):
             pass
+        
         elif isinstance(self.current_token, _if):
-            pass
+            self.next_token()
+            return self.parse_if()
+            
         elif isinstance(self.current_token, _call):
-            pass
+            self.next_token()
+            
+            if not isinstance(self.current_token, (CONST, ID)):
+                print("Expected CONST or ID after call instruction")
+                return None
+            self.next_token()
+                
         elif isinstance(self.current_token, _return):
             # No operands needed, just consume any values on stack
             self.next_token()
@@ -295,7 +304,7 @@ class Parser:
             print("Is ControlFlowInstruction {self.current_token} but not found!")
             pass
 
-
+    
     def parse_block(self):
 
         operands = []
@@ -399,7 +408,88 @@ class Parser:
             print("Expected function index/name for br")
             return None
 
+    def parse_br_if(self):
+        pass
+    
+    def parse_if(self):
+        
+        operands = []
+        # Parse operands/instructions until closing parenthesis
+        while not isinstance(self.current_token, RPAREN):
+            if isinstance(self.current_token, LPAREN):
+                self.next_token()
+                if isinstance(self.current_token, ControlFlowInstruction):
+                    nested_instr = self.parse_control_flow()
+                    if nested_instr is None:
+                        return None
+                    operands.append(nested_instr)
+                elif isinstance(self.current_token, Instruction):
+                    nested_instr = self.parse_instruction()
+                    if nested_instr is None:
+                        return None
+                    operands.append(nested_instr)
+                else:
+                    print('(...) Other options in parse_block???')
 
+                if not isinstance(self.current_token, RPAREN):
+                    print("Expected ')' after nested instruction")
+                    return None
+                self.next_token()
+            else:
+                # Handle immediate values
+                if isinstance(self.current_token, (CONST, ID)):
+                    operands.append(self.current_token.value)
+                    self.next_token()
+                elif isinstance(self.current_token, ControlFlowInstruction):
+                    nested_instr = self.parse_control_flow()
+                    if nested_instr is None:
+                        return None
+                    operands.append(nested_instr)
+                elif isinstance(self.current_token, Instruction):
+                    nested_instr = self.parse_instruction()
+                    if nested_instr is None:
+                        return None
+                    operands.append(nested_instr)
+                else:
+                    print('Other options in parse_block???')
+                    break
+                
+                
+        # For 'if' instruction, handle else branch
+        if isinstance(self.current_token, LPAREN):
+            self.next_token()
+            if isinstance(self.current_token, _else):
+                self.next_token()
+                else_operands = []
+                    
+                while not isinstance(self.current_token, RPAREN):
+                    if isinstance(self.current_token, LPAREN):
+                        self.next_token()
+                        nested_instr = self.parse_instruction()
+                        if nested_instr is None:
+                            return None
+                        else_operands.append(nested_instr)
+                            
+                        if not isinstance(self.current_token, RPAREN):
+                            print("Expected ')' after else instruction")
+                            return None
+                        self.next_token()
+                    else:
+                        break
+                    
+                return ControlFlowInstruction(_if, {
+                    'then': operands,
+                    'else': else_operands
+                })
+
+            return ControlFlowInstruction(_if, {
+                'then': operands,
+                'else': []  # Will be filled if there's an else branch
+            })
+                
+        return ControlFlowInstruction(_if, operands)
+        
+    
     def original_parse_control_flow(self):
 
         # control_flow_instr = ControlFlowInstruction()
