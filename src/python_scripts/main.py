@@ -1,5 +1,6 @@
 from Lexer import Lexer
 from Parser import Parser
+from Interpreter import Interpreter
 import pprint
 
 
@@ -55,3 +56,8 @@ if ast is None:
 print("\nAST: Typeof AST:")
 print(type(ast))
 pprint.pprint(ast)
+
+print(ast.funcs)
+print(ast.exports)
+interpreter = Interpreter()
+interpreter.interpret(ast)

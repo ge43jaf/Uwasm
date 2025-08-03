@@ -46,11 +46,35 @@ class Interpreter:
             self.current_token = None
         return self.current_token
         
-    def interpret(self, tokens):
-        if not tokens:
-            print("Error: No tokens to parse")
+    def interpret(self, ast):
+        if not ast:
+            print("Error: No ast to interprete")
             return None
             
-        self.tokens = tokens
-        self.current_token = self.tokens[0]
-        return self.parse_module()
+        self.module = ast
+        # self.current_token = self.tokens[0]
+        
+        self.check_export()
+        self.check_stack()
+
+    
+    # Export and Definition Checking
+    def check_export(self):
+        funcs_names = []
+        for func in self.module.funcs:
+            # print(type(func.name))
+            funcs_names.append(func.name)
+            
+        for exported_func in self.module.exports:
+            # print(type(exported_func.exp_func.name))
+            if exported_func.exp_func.name not in funcs_names:
+                print(f"Unexpected function to export: {exported_func}")
+                return None
+            
+            print(f"Export checking successful")
+            
+    # Stack Checking
+    def check_stack(self):
+        
+        for mem in self.module.mems:
+            pass

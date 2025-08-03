@@ -693,7 +693,7 @@ class Parser:
             print("Expected funcction name after 'func' in export")
             return None
         # func_name_registered = False
-        exp_func = Func(self.current_token)
+        exp_func = Func(self.current_token.value)
         # for func in self.module.funcs:
         #     if self.current_token.value == func.name:
         #         func_name_registered = True

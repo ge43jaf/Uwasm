@@ -95,19 +95,23 @@ class RPAREN:
     def __repr__(self): return "RPAREN()"
 
 class ID:
-    def __init__(self, value=None): self.value = value
+    def __init__(self, value=None): 
+        self.value = value
     def __repr__(self): return f"ID({self.value})"
 
 class TYPE:
-    def __init__(self, value): self.value = value
+    def __init__(self, value): 
+        self.value = value
     def __repr__(self): return f"TYPE({self.value})"
     
 class CONST:
-    def __init__(self, value): self.value = value
+    def __init__(self, value): 
+        self.value = value
     def __repr__(self): return f"CONST({self.value})"
 
 class STRING:
-    def __init__(self, value): self.value = value
+    def __init__(self, value): 
+        self.value = value
     def __repr__(self): return f"STRING({self.value})"
 
 class EOF:
