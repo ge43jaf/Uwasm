@@ -165,44 +165,69 @@ class ControlFlowInstruction(Instruction):
 
 class BinaryInstruction(Instruction):
     
-    def __init__(self, op=None, operand1=None, operand2=None):
-        self.op = op
-        self.operand1 = operand1
-        self.operand2 = operand2
-        return f"{self.operand1} {self.op} {self.operand2}"
+    # def __init__(self, op=None, operand1=None, operand2=None):
+    #     self.op = op
+    #     self.operand1 = operand1
+    #     self.operand2 = operand2
+        # return f"{self.operand1} {self.op} {self.operand2}"
+    
+    def __init__(self, op=None, operands=None):
+        super().__init__(op, operands)
+        # if len(self.operands) != 2:
+        #     raise ValueError(f"BinaryInstruction requires exactly 2 operands, got {len(self.operands)}")
         
+    # def __repr__(self, indent=0):
+    #     indent_str = "  " * indent
+    #     operands_str = []
         
-    def __repr__(self, indent=0):
-        indent_str = "  " * indent
-        operands_str = []
+    #     if isinstance(self.operand1, Instruction):
+    #         operands_str.append(self.operand1.__repr__(indent+1))
+    #     else:
+    #         operands_str.append(f"{indent_str}  {self.operand1}")
         
-        if isinstance(operand1, Instruction):
-            operands_str.append(operand1.__repr__(indent+1))
-        else:
-            operands_str.append(f"{indent_str}  {operand1}")
-        
-        if isinstance(operand2, Instruction):
-            operands_str.append(operand2.__repr__(indent+1))
-        else:
-            operands_str.append(f"{indent_str}  {operand2}")
+    #     if isinstance(self.operand2, Instruction):
+    #         operands_str.append(self.operand2.__repr__(indent+1))
+    #     else:
+    #         operands_str.append(f"{indent_str}  {self.operand2}")
             
-        operands = "\n    ".join(operands_str)
-        # return f"{indent_str}{self.op}:  {operands}"
-        return f"{indent_str}{self.operand1} {self.op} {self.operand2}"
+    #     operands = "\n    ".join(operands_str)
+    #     # return f"{indent_str}{self.op}:  {operands}"
+    #     return f"{indent_str}{self.operand1} {self.op} {self.operand2}"
         
 class _i32_const(Instruction): 
     def __repr__(self): return "_i32_const"
-class _i32_add(Instruction): pass
-
-class _i32_sub: pass
-class _i32_mul: pass
-class _i32_div_s: pass
-class _i32_ge_u: pass
-class _i32_gt_s: pass
+    
+class _i32_add(BinaryInstruction):
+    def __init__(self, op=None, operands=None):
+        super().__init__(op, operands)
+    def __repr__(self): 
+        return "_i32_add"
+    
+class _i32_sub(BinaryInstruction):
+    def __repr__(self): 
+        return "_i32_sub"
+class _i32_mul(BinaryInstruction):
+    def __repr__(self): 
+        return "_i32_mul"
+class _i32_div_s(BinaryInstruction):
+    def __repr__(self): 
+        return "_i32_div_s"
+class _i32_ge_u(BinaryInstruction):
+    def __repr__(self): 
+        return "_i32_ge_u"
+class _i32_gt_s(BinaryInstruction):
+    def __repr__(self): 
+        return "_i32_gt_s"
 
 class _local_get(Instruction):
-    def __init__(self, value=None): self.value = value
-    def __repr__(self): return f"_local_get({self.value})"
+    # def __init__(self, value=None): 
+    #     self.value = value
+    # def __repr__(self): 
+    #     return f"_local_get({self.value})"
+    def __init__(self, op=None, operands=None):
+        super().__init__(op, operands)
+    def __repr__(self): 
+        return "_local_get"
 class _local_set: pass
 class _local_tee: pass
 class _global_get: pass

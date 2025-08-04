@@ -29,11 +29,11 @@ wat_code = """
     )
     """
 
-try:
-    with open('../tests/success/test_loooooooooooooop.wat', 'r') as file:
-        wat_code = file.read()
-except FileNotFoundError:
-    print("Error: File '../test/success' not found.")
+# try:
+#     with open('../tests/success/test_loooooooooooooop.wat', 'r') as file:
+#         wat_code = file.read()
+# except FileNotFoundError:
+#     print("Error: File '../test/success' not found.")
 
 print(wat_code)
 lexer = Lexer()
@@ -57,7 +57,7 @@ print("\nAST: Typeof AST:")
 print(type(ast))
 pprint.pprint(ast)
 
-print(ast.funcs)
-print(ast.exports)
+# print(ast.funcs)
+# print(ast.exports)
 interpreter = Interpreter()
 interpreter.interpret(ast)

@@ -1,7 +1,7 @@
 from Lexer import (
     LPAREN, RPAREN, ID, TYPE, CONST, STRING, EOF,
     Module, Func, Param, Result, Local, Export, Memory, 
-    Instruction, ControlFlowInstruction,
+    Instruction, ControlFlowInstruction, BinaryInstruction,
     _i32_const, 
     _i32_add, 
     _i32_sub,
@@ -630,12 +630,16 @@ class Parser:
                                             
         #                                     _call, 
         #                                     _return)):
-        
+        op_class = self.current_token
         op = type(self.current_token).__name__[1:].replace('_', '.')
+        operands = []
+        
+        if isinstance(self.current_token, BinaryInstruction):
+            self.next_token()
+            return BinaryInstruction(op, operands)
         
         self.next_token()
-            
-        operands = []
+        
         while not isinstance(self.current_token, RPAREN):
             if isinstance(self.current_token, (CONST, ID)):
                 operands.append(self.current_token.value)
@@ -656,7 +660,7 @@ class Parser:
             self.next_token()
         
         print(f'In parse_instruction : {Instruction(op, operands)}')
-        return Instruction(op, operands)
+        return op_class     # Instruction(op, operands)
         # else:
         #     print(f"Unknown instruction: {self.current_token}")
         #     return None

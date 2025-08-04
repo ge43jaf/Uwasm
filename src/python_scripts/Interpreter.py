@@ -1,7 +1,7 @@
 from Lexer import (
     LPAREN, RPAREN, ID, TYPE, CONST, STRING, EOF,
     Module, Func, Param, Result, Local, Export, Memory, 
-    Instruction, ControlFlowInstruction,
+    Instruction, ControlFlowInstruction, BinaryInstruction,
     _i32_const, 
     _i32_add, 
     _i32_sub,
@@ -57,6 +57,8 @@ class Interpreter:
         self.check_export()
         self.check_stack()
 
+    def check_func_signature(self):
+        pass
     
     # Export and Definition Checking
     def check_export(self):
@@ -76,5 +78,54 @@ class Interpreter:
     # Stack Checking
     def check_stack(self):
         
+        stack = [] # Stack for simulation
         for mem in self.module.mems:
             pass
+        
+        for func in self.module.funcs:
+            for instr in func.body:
+                print(instr)
+                # if isinstance(instr, _i32_const):
+                #     stack.append("i32")
+                
+                # Check uniary instructions
+                if isinstance(instr, _i32_const) or isinstance(instr, _local_get) or isinstance(instr, _global_get):
+                    # print("Local get!!!")
+                    stack.append("i32")
+                    
+                # Check reverse uniary instructions
+                if isinstance(instr, _local_set) or isinstance(instr, _global_set):
+                    stack.pop()
+                    
+                if isinstance(instr, _local_tee):
+                    if stack.pop() != "i32":
+                        print("local.tee instrution waits for a i32 on stack!")
+                        return None
+                    stack.append("i32")
+                    
+                if isinstance(instr, BinaryInstruction):
+                    print(f"BinaryInstruction: {instr}")
+                    print(stack)
+                    if len(stack) >= 2: # and stack[-1]
+                        op1 = stack.pop()
+                        op2 = stack.pop()
+                        if op1 != "i32":
+                            print(f"TypeError: op1 for BinaryInstruction {instr}")
+                            return None
+                        if op2 != "i32":
+                            print(f"TypeError: op2 for BinaryInstruction {instr}")
+                            return None
+                        stack.append("i32")
+                        
+                    else:
+                        print(f"Stack error: not enough operands for BinaryInstruction")
+                        return None
+                        
+        print(f"Stack checking successful")
+        
+# 2025-08-04
+# Parser for other control flow instructions
+#
+# Export checking in Interpreter
+# Stack checking in Interpreter
+# Paper structure alright?
