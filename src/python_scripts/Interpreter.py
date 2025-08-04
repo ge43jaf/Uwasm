@@ -125,7 +125,7 @@ class Interpreter:
         
 # 2025-08-04
 # Parser for other control flow instructions
-#
+# Parse function signature in the order of Param, Result, Local
 # Export checking in Interpreter
 # Stack checking in Interpreter
 # Paper structure alright?

@@ -29,11 +29,11 @@ wat_code = """
     )
     """
 
-# try:
-#     with open('../tests/success/test_loooooooooooooop.wat', 'r') as file:
-#         wat_code = file.read()
-# except FileNotFoundError:
-#     print("Error: File '../test/success' not found.")
+try:
+    with open('../tests/failure/test_func_signature.wat', 'r') as file:
+        wat_code = file.read()
+except FileNotFoundError:
+    print("Error: File '../test/success' not found.")
 
 print(wat_code)
 lexer = Lexer()

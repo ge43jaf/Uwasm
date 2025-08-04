@@ -118,6 +118,7 @@ class Parser:
             self.next_token()
         
         # TODO: Parse params ... first, then instructions check
+        current_section = None
         
         # (...) (...) (...)
         while not isinstance(self.current_token, RPAREN):
@@ -136,16 +137,25 @@ class Parser:
                     func.export_name = self.current_token
                     self.next_token()
                 elif isinstance(self.current_token, Param):
+                    if current_section and current_section != 'param':
+                        print("Error: Params must come before results and locals")
+                        return None
+                    current_section = 'param'
                     param = self.parse_param()
                     if param is None:
                         return None
                     func.params.append(param)
                 elif isinstance(self.current_token, Result):
+                    if current_section and current_section not in ('param', 'result'):
+                        print("Error: Results must come after params and before locals")
+                        return None
+                    current_section = 'result'
                     result = self.parse_result()
                     if result is None:
                         return None
                     func.results.append(result)
                 elif isinstance(self.current_token, Local):
+                    current_section = 'local'
                     local = self.parse_local()
                     if local is None:
                         return None
