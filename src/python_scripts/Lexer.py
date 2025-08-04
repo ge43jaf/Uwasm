@@ -246,7 +246,7 @@ class _loop(ControlFlowInstruction):
 class _br(ControlFlowInstruction): pass
 class _br_if(ControlFlowInstruction): pass
 class _if(ControlFlowInstruction): pass
-
+class _else(ControlFlowInstruction): pass
 
 # Keyword and Instruction Sets
 KEYWORDS = {
@@ -312,6 +312,7 @@ class Lexer:
 
         wat = re.sub(r";;.*", "", wat)
         
+        # print(wat)
         
         while self.pos < len(self.input):
             c = self.input[self.pos]
@@ -322,6 +323,7 @@ class Lexer:
                 self.pos += 1
             
             elif c == ';':
+                self.pos += 1
                 pass
                 # Further comment manipulation
             
