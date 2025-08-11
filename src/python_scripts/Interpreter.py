@@ -92,7 +92,7 @@ class Interpreter:
                 # Check uniary instructions
                 if isinstance(instr, _i32_const) or isinstance(instr, _local_get) or isinstance(instr, _global_get):
                     # print("Local get!!!")
-                    stack.append("i32")
+                    stack.append("i32")     # TODO: Floating number check
                     
                 # Check reverse uniary instructions
                 if isinstance(instr, _local_set) or isinstance(instr, _global_set):
