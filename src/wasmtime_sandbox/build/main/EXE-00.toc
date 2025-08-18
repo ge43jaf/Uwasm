@@ -1,0 +1,61 @@
+('/Users/ypl/Desktop/SS25/Master Thesis -- '
+ 'WASM/An-interpreter-for-Wasm/src/wasmtime_sandbox/build/main/main',
+ True,
+ False,
+ True,
+ None,
+ None,
+ False,
+ False,
+ None,
+ True,
+ False,
+ 'arm64',
+ None,
+ None,
+ '/Users/ypl/Desktop/SS25/Master Thesis -- '
+ 'WASM/An-interpreter-for-Wasm/src/wasmtime_sandbox/build/main/main.pkg',
+ [('pyi-contents-directory _internal', '', 'OPTION'),
+  ('PYZ-00.pyz',
+   '/Users/ypl/Desktop/SS25/Master Thesis -- '
+   'WASM/An-interpreter-for-Wasm/src/wasmtime_sandbox/build/main/PYZ-00.pyz',
+   'PYZ'),
+  ('lib-dynload/_struct.cpython-39-darwin.so',
+   '/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/lib-dynload/_struct.cpython-39-darwin.so',
+   'EXTENSION'),
+  ('lib-dynload/zlib.cpython-39-darwin.so',
+   '/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/lib-dynload/zlib.cpython-39-darwin.so',
+   'EXTENSION'),
+  ('struct',
+   '/Users/ypl/Desktop/SS25/Master Thesis -- '
+   'WASM/An-interpreter-for-Wasm/src/wasmtime_sandbox/build/main/localpycs/struct.pyc',
+   'PYMODULE'),
+  ('pyimod01_archive',
+   '/Users/ypl/Desktop/SS25/Master Thesis -- '
+   'WASM/An-interpreter-for-Wasm/src/wasmtime_sandbox/build/main/localpycs/pyimod01_archive.pyc',
+   'PYMODULE'),
+  ('pyimod02_importers',
+   '/Users/ypl/Desktop/SS25/Master Thesis -- '
+   'WASM/An-interpreter-for-Wasm/src/wasmtime_sandbox/build/main/localpycs/pyimod02_importers.pyc',
+   'PYMODULE'),
+  ('pyimod03_ctypes',
+   '/Users/ypl/Desktop/SS25/Master Thesis -- '
+   'WASM/An-interpreter-for-Wasm/src/wasmtime_sandbox/build/main/localpycs/pyimod03_ctypes.pyc',
+   'PYMODULE'),
+  ('pyiboot01_bootstrap',
+   '/Users/ypl/Desktop/SS25/Master Thesis -- '
+   'WASM/An-interpreter-for-Wasm/src/wasmtime_sandbox/.venv/lib/python3.9/site-packages/PyInstaller/loader/pyiboot01_bootstrap.py',
+   'PYSOURCE'),
+  ('main',
+   '/Users/ypl/Desktop/SS25/Master Thesis -- '
+   'WASM/An-interpreter-for-Wasm/src/wasmtime_sandbox/python_scripts/main.py',
+   'PYSOURCE')],
+ [],
+ False,
+ False,
+ 1755442559,
+ [('run',
+   '/Users/ypl/Desktop/SS25/Master Thesis -- '
+   'WASM/An-interpreter-for-Wasm/src/wasmtime_sandbox/.venv/lib/python3.9/site-packages/PyInstaller/bootloader/Darwin-64bit/run',
+   'EXECUTABLE')],
+ '/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/Python3')
