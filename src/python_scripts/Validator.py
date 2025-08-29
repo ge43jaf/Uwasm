@@ -138,12 +138,13 @@ class Interpreter:
             
             func_id_set =set()
             
+            # func.name can be None
             if not func.name:
-                # TODO: wait for wasm2wat
+                # DONE: wait for wasm2wat
                 # print(f'{func}')
-                print(f"FunctionIdentifierNameError: function name NoneType")
-                return None
-            
+                # print(f"FunctionIdentifierNameError: function name NoneType")
+                # return None
+                pass
             elif not func.name.startswith("$"):
                 print(f"FunctionIdentifierNameError: {func.name}, should start with '$'")
                 return None
@@ -151,12 +152,14 @@ class Interpreter:
                 id_set.add(func.name)
                 
             for param in func.params:
-                if not param.name:
-                    # TODO: wait for wasm2wat
-                    # print(f'{func}')
-                    print(f"ParameterIdentifierNameError: parameter name NoneType")
-                    return None
                 
+                # param.name can be None
+                if not param.name:
+                    # DONE: wait for wasm2wat
+                    # print(f'{func}')
+                    # print(f"ParameterIdentifierNameError: parameter name NoneType")
+                    # return None
+                    pass
                 elif not param.name.startswith("$"):
                     print(f"ParameterIdentifierNameError: {param.name}, should start with '$'")
                     return None
@@ -164,12 +167,14 @@ class Interpreter:
                     func_id_set.add(param.name)
                     
             for local in func.locals:
-                if not local.name:
-                    # TODO: wait for wasm2wat
-                    # print(f'{func}')
-                    print(f"LocalIdentifierNameError: local name NoneType")
-                    return None
                 
+                # local.name can be None
+                if not local.name:
+                    # DONE: wait for wasm2wat
+                    # print(f'{func}')
+                    # print(f"LocalIdentifierNameError: local name NoneType")
+                    # return None
+                    pass
                 elif not local.name.startswith("$"):
                     print(f"LocalIdentifierNameError: {local.name}, should start with '$'")
                     return None
