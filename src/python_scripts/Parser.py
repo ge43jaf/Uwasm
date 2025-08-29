@@ -1,3 +1,4 @@
+
 from Lexer import (
     LPAREN, RPAREN, ID, TYPE, CONST, STRING, EOF,
     Module, Func, Param, Result, Local, Export, Memory, 
@@ -27,7 +28,6 @@ from Lexer import (
     _else
 )
 
-par_verb_flag = False
 
 class Parser:
     def __init__(self):
@@ -36,7 +36,8 @@ class Parser:
         self.tokens = []
         self.module = None
         # self.funcs = []
-    
+        self.par_verb_flag = False
+        
     def next_token(self):
         self.token_index += 1
         if self.token_index < len(self.tokens):

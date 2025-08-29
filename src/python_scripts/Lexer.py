@@ -288,12 +288,12 @@ WASM_INSTRUCTIONS = {
             'if': 'var'
         }
 
-lex_verb_flag = False
 
 class Lexer:
     def __init__(self):
         self.line_number = 1
-
+        self.lex_verb_flag = False
+        
     def get_token_class(self, lexeme):
         if lexeme in KEYWORDS:
             return globals()[lexeme.capitalize()]
@@ -368,7 +368,9 @@ class Lexer:
                 lexeme = self.input[start:self.pos]
                 
                 token_class = self.get_token_class(lexeme)
-                if lex_verb_flag:
+                # print("lexer: lex_verb_flag: " + str(lex_verb_flag))
+                # if lex_verb_flag:
+                if self.lex_verb_flag:
                     print('isalpha() token_class: ' + str(token_class))
                 # return None
                 if token_class:

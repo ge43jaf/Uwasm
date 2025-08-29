@@ -77,3 +77,4 @@ else:
     print("Error: Either specify an input file or use -t to run tests")
     parser.print_help()
     
+print("main.verb_flag: " + main.verb_flag)

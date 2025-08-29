@@ -1,3 +1,4 @@
+
 from Lexer import (
     LPAREN, RPAREN, ID, TYPE, CONST, STRING, EOF,
     Module, Func, Param, Result, Local, Export, Memory, 
