@@ -30,7 +30,7 @@ from Lexer import (
 from Parser import *
 
 
-class Interpreter:
+class Validator:
     def __init__(self):
         self.current_token = None
         self.token_index = 0
@@ -47,9 +47,9 @@ class Interpreter:
             self.current_token = None
         return self.current_token
         
-    def interpret(self, ast):
+    def validate(self, ast):
         if not ast:
-            print("Error: No ast to interprete")
+            print("Error: No ast to validate")
             return None
             
         self.module = ast

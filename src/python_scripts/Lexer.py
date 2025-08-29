@@ -288,6 +288,8 @@ WASM_INSTRUCTIONS = {
             'if': 'var'
         }
 
+lex_verb_flag = False
+
 class Lexer:
     def __init__(self):
         self.line_number = 1
@@ -366,7 +368,8 @@ class Lexer:
                 lexeme = self.input[start:self.pos]
                 
                 token_class = self.get_token_class(lexeme)
-                print('isalpha() token_class: ' + str(token_class))
+                if lex_verb_flag:
+                    print('isalpha() token_class: ' + str(token_class))
                 # return None
                 if token_class:
                     self.tokens.append(token_class())       # Passing parameters here?

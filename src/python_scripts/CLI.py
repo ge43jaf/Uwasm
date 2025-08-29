@@ -24,6 +24,13 @@ parser.add_argument(
     help="Generate AST for the input"
 )
 
+parser.add_argument(
+    '-v',
+    '--verbose',
+    action='store_true',
+    help="List all intermediate steps, can be used for debugging purposes"
+)
+
 args = parser.parse_args()
 
 def run_tests():
@@ -59,8 +66,14 @@ def run_tests():
 if args.test:
     run_tests()
 elif args.ast:
+    main.verb_flag = False
+    main()
+
+elif args.verbose:
+    main.verb_flag = True
     main()
     
 else:
     print("Error: Either specify an input file or use -t to run tests")
     parser.print_help()
+    

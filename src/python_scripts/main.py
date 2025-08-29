@@ -1,9 +1,9 @@
 from Lexer import Lexer
 from Parser import Parser
-from Validator import Interpreter
+from Validator import Validator
 import pprint
 
-
+verb_flag = False
 
 wat_code = """
     (module
@@ -36,28 +36,39 @@ except FileNotFoundError:
     print("Error: File '../test/success' not found.")
 
 print(wat_code)
+
 lexer = Lexer()
 parser = Parser()
     
+if verb_flag:
+    lexer.lex_verb_flag = True
+    parser.par_verb_flag = True
+else:
+    lexer.lex_verb_flag = False
+    parser.par_verb_flag = False
+    
+
 tokens = lexer.tokenize(wat_code)
 if tokens is None:
     print("Lexical analysis failed")
 
-print("Tokens:")
-for token in tokens:
-    print(token)
+if verb_flag:
+    print("Tokens:")
+    for token in tokens:
+        print(token)
 
 
 ast = parser.parse(tokens)
 if ast is None:
     print("Parsing failed")
 
+if verb_flag:
+    print("\nAST: Typeof AST:")
+    print(type(ast))
 
-print("\nAST: Typeof AST:")
-print(type(ast))
 pprint.pprint(ast)
 
 # print(ast.funcs)
 # print(ast.exports)
-interpreter = Interpreter()
-interpreter.interpret(ast)
+validator = Validator()
+validator.interpret(ast)

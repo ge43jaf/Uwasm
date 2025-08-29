@@ -27,6 +27,8 @@ from Lexer import (
     _else
 )
 
+par_verb_flag = False
+
 class Parser:
     def __init__(self):
         self.current_token = None
