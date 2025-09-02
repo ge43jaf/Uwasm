@@ -7,8 +7,9 @@ import argparse
 from pathlib import Path
 
 verb_flag = False
+valid_flag = False
 
-wat_code = """
+wat_code_0 = """
     (module
         (memory $mem1 1)
     
@@ -31,6 +32,67 @@ wat_code = """
         )
     )
     """
+
+wat_code = """
+(module
+  ;;(import "console" "log" (func $log (param i32)))
+  (func $fib (param $fib i32) (result i32)
+    (local $a i32)
+    (local $b i32)
+    (local $nextTerm i32)
+
+    local.get $fib
+    i32.const 2
+    i32.lt_s
+    if
+      local.get $fib
+      call $log
+      local.get $fib
+      return
+    end
+
+    ;; Stack: a=0, b=1
+    i32.const 0
+    local.set $a
+    local.get $a
+    call $log
+
+    i32.const 1
+    local.set $b
+    local.get $b
+    call $log
+
+    loop $loop
+      local.get $a
+      local.get $b
+      i32.add
+      local.set $nextTerm
+      local.get $nextTerm
+      call $log
+    
+      local.get $b
+      local.set $a
+    
+      local.get $nextTerm
+      local.set $b
+    
+      local.get $fib
+      i32.const 1
+      i32.sub
+      local.set $fib
+    
+      local.get $fib
+      i32.const 0
+      i32.gt_s
+      br_if $loop
+    end
+    
+    local.get $b
+  )
+
+  (export "fib" (func $fib))
+)
+"""
 
 try:
     with open('../tests/success/test004_export.wat', 'r') as file:
@@ -66,7 +128,7 @@ parser.add_argument(
     '-i',
     '--interprete',
     action='store_true',
-    help="Interprete/Validate the programm based on the generated AST"
+    help="Validate the programm based on the generated AST"
 )
 
 args = parser.parse_args()
@@ -105,11 +167,13 @@ if args.test:
     run_tests()
 elif args.ast:
     verb_flag = False
-
-
+    valid_flag = False
+    
 elif args.verbose:
     verb_flag = True
     
+elif args.interprete:
+    valid_flag = True
 else:
     print("Error: Either specify an input file or use -t to run tests")
     parser.print_help()
@@ -129,12 +193,13 @@ else:
     lexer.lex_verb_flag = False
     parser.par_verb_flag = False
     
-print("lexer.lex_verb_flag: " + str(lexer.lex_verb_flag), "parser.par_verb_flag: " + str(parser.par_verb_flag) )
+print("lexer.lex_verb_flag: " + str(lexer.lex_verb_flag), "\nparser.par_verb_flag: " + str(parser.par_verb_flag) )
 tokens = lexer.tokenize(wat_code)
 if tokens is None:
     print("Lexical analysis failed")
 
-if verb_flag:
+# if verb_flag:
+if True:
     print("Tokens:")
     for token in tokens:
         print(token)
