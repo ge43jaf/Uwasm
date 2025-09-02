@@ -39,7 +39,6 @@ except FileNotFoundError:
     print("Error: File '../test/success' not found.")
 
 
-
 parser = argparse.ArgumentParser(description="An interpreter for WASM")
 
 parser.add_argument(
@@ -61,6 +60,13 @@ parser.add_argument(
     '--verbose',
     action='store_true',
     help="List all intermediate steps, can be used for debugging purposes"
+)
+
+parser.add_argument(
+    '-i',
+    '--interprete',
+    action='store_true',
+    help="Interprete/Validate the programm based on the generated AST"
 )
 
 args = parser.parse_args()
