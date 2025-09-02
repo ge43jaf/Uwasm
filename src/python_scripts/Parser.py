@@ -74,18 +74,23 @@ class Parser:
             return None
         
         self.next_token()
+        while isinstance(self.current_token, NEWLINE) or isinstance(self.current_token, SPACE):
+            if isinstance(self.current_token, NEWLINE):
+                self.line_number += 1
+            self.next_token()
+            
         if not isinstance(self.current_token, Module):
             print("Expected 'module' keyword")
             return None
         
         self.module = Module(mems=[], funcs=[], exports=[])
         self.next_token()
-        
+        while isinstance(self.current_token, NEWLINE) or isinstance(self.current_token, SPACE):
+            if isinstance(self.current_token, NEWLINE):
+                self.line_number += 1
+            self.next_token()
+                
         while not isinstance(self.current_token, RPAREN):
-            while isinstance(self.current_token, NEWLINE) or isinstance(self.current_token, SPACE):
-                if isinstance(self.current_token, NEWLINE):
-                    self.line_number += 1
-                self.next_token()
             
             if self.current_token is None:
                 print(f"Line {self.line_number}: Unexpected EOF while parsing module")
@@ -132,17 +137,24 @@ class Parser:
                     print(f"Line {self.line_number}: Expected ')' after module element")
                     return None
                 self.next_token()
+                while isinstance(self.current_token, NEWLINE) or isinstance(self.current_token, SPACE):
+                    if isinstance(self.current_token, NEWLINE):
+                        self.line_number += 1
+                    self.next_token()
             else:
                 print(f"Line {self.line_number}: Unexpected token in module: {self.current_token}")
                 return None
         
         self.next_token()
+        while isinstance(self.current_token, NEWLINE) or isinstance(self.current_token, SPACE):
+            if isinstance(self.current_token, NEWLINE):
+                self.line_number += 1
+            self.next_token()
         return self.module
     
     def parse_func(self):
         func = Func()
         self.next_token()
-        
         while isinstance(self.current_token, NEWLINE) or isinstance(self.current_token, SPACE):
             if isinstance(self.current_token, NEWLINE):
                 self.line_number += 1
@@ -151,7 +163,10 @@ class Parser:
         if isinstance(self.current_token, ID):
             func.name = self.current_token.value
             self.next_token()
-        
+            while isinstance(self.current_token, NEWLINE) or isinstance(self.current_token, SPACE):
+                if isinstance(self.current_token, NEWLINE):
+                    self.line_number += 1
+                self.next_token()
         # TODO: Parse params ... first, then instructions check
         current_section = None
         
@@ -174,12 +189,20 @@ class Parser:
                     
                 if isinstance(self.current_token, Export):
                     self.next_token()
+                    while isinstance(self.current_token, NEWLINE) or isinstance(self.current_token, SPACE):
+                        if isinstance(self.current_token, NEWLINE):
+                            self.line_number += 1
+                        self.next_token()
                     if not isinstance(self.current_token, STRING):
                         print(f"Line {self.line_number}: Expected export name to be a string in function signature")
                         return None
                     func.export_name = self.current_token
                     self.next_token()
-                    
+                    while isinstance(self.current_token, NEWLINE) or isinstance(self.current_token, SPACE):
+                        if isinstance(self.current_token, NEWLINE):
+                            self.line_number += 1
+                        self.next_token()
+                
                 elif isinstance(self.current_token, Param):
                     if current_section and current_section != 'param':
                         print(f"Line {self.line_number}: Error: Params must come before results and locals")
@@ -237,12 +260,20 @@ class Parser:
                     print(f"Line {self.line_number}: Expected ')' after func element")
                     return None
                 self.next_token()
-                
+                while isinstance(self.current_token, NEWLINE) or isinstance(self.current_token, SPACE):
+                    if isinstance(self.current_token, NEWLINE):
+                        self.line_number += 1
+                    self.next_token()
+                    
             elif isinstance(self.current_token, ControlFlowInstruction):
                 print('ControlFlowInstruction :  ' + str(type(self.current_token)))
                 
                 if isinstance(self.current_token, _nop):
                     self.next_token()
+                    while isinstance(self.current_token, NEWLINE) or isinstance(self.current_token, SPACE):
+                        if isinstance(self.current_token, NEWLINE):
+                            self.line_number += 1
+                        self.next_token()
                     continue
                 elif isinstance(self.current_token, _block):
                     block = self.parse_block()
@@ -281,14 +312,24 @@ class Parser:
     def parse_param(self):
         param = Param()
         self.next_token()
-        
+        while isinstance(self.current_token, NEWLINE) or isinstance(self.current_token, SPACE):
+            if isinstance(self.current_token, NEWLINE):
+                self.line_number += 1
+            self.next_token()
         if isinstance(self.current_token, ID):
             param.name = self.current_token.value
             self.next_token()
-        
+            while isinstance(self.current_token, NEWLINE) or isinstance(self.current_token, SPACE):
+                if isinstance(self.current_token, NEWLINE):
+                    self.line_number += 1
+                self.next_token()
         if isinstance(self.current_token, TYPE):
             param.type = self.current_token.value
             self.next_token()
+            while isinstance(self.current_token, NEWLINE) or isinstance(self.current_token, SPACE):
+                if isinstance(self.current_token, NEWLINE):
+                    self.line_number += 1
+                self.next_token()
         else:
             print(f"Line {self.line_number}: Expected parameter type")
             return None
@@ -298,14 +339,24 @@ class Parser:
     def parse_local(self):
         local = Local()
         self.next_token()
-        
+        while isinstance(self.current_token, NEWLINE) or isinstance(self.current_token, SPACE):
+            if isinstance(self.current_token, NEWLINE):
+                self.line_number += 1
+            self.next_token()
         if isinstance(self.current_token, ID):
             local.name = self.current_token.value
             self.next_token()
-        
+            while isinstance(self.current_token, NEWLINE) or isinstance(self.current_token, SPACE):
+                if isinstance(self.current_token, NEWLINE):
+                    self.line_number += 1
+                self.next_token()
         if isinstance(self.current_token, ID):
             local.type = self.current_token.value
             self.next_token()
+            while isinstance(self.current_token, NEWLINE) or isinstance(self.current_token, SPACE):
+                if isinstance(self.current_token, NEWLINE):
+                    self.line_number += 1
+                self.next_token()
         else:
             print(f"Line {self.line_number}: Expected local type")
             return None
@@ -314,10 +365,17 @@ class Parser:
     
     def parse_result(self):
         self.next_token()
-        
+        while isinstance(self.current_token, NEWLINE) or isinstance(self.current_token, SPACE):
+            if isinstance(self.current_token, NEWLINE):
+                self.line_number += 1
+            self.next_token()
         if isinstance(self.current_token, TYPE):
             result_type = self.current_token.value
             self.next_token()
+            while isinstance(self.current_token, NEWLINE) or isinstance(self.current_token, SPACE):
+                if isinstance(self.current_token, NEWLINE):
+                    self.line_number += 1
+                self.next_token()
             return result_type
         else:
             print(f"Line {self.line_number}: Expected result type")
@@ -327,18 +385,34 @@ class Parser:
 
         if isinstance(self.current_token, _nop):
             self.next_token()
+            while isinstance(self.current_token, NEWLINE) or isinstance(self.current_token, SPACE):
+                if isinstance(self.current_token, NEWLINE):
+                    self.line_number += 1
+                self.next_token()
             return ControlFlowInstruction(_nop)
 
         elif isinstance(self.current_token, _block):
             self.next_token()
+            while isinstance(self.current_token, NEWLINE) or isinstance(self.current_token, SPACE):
+                if isinstance(self.current_token, NEWLINE):
+                    self.line_number += 1
+                self.next_token()
             return self.parse_block()
             
         elif isinstance(self.current_token, _loop):
             self.next_token()
+            while isinstance(self.current_token, NEWLINE) or isinstance(self.current_token, SPACE):
+                if isinstance(self.current_token, NEWLINE):
+                    self.line_number += 1
+                self.next_token()
             return self.parse_loop()
 
         elif isinstance(self.current_token, _br):
             self.next_token()
+            while isinstance(self.current_token, NEWLINE) or isinstance(self.current_token, SPACE):
+                if isinstance(self.current_token, NEWLINE):
+                    self.line_number += 1
+                self.next_token()
             return self.parse_br()
 
         elif isinstance(self.current_token, _br_if):
@@ -346,19 +420,33 @@ class Parser:
         
         elif isinstance(self.current_token, _if):
             self.next_token()
+            while isinstance(self.current_token, NEWLINE) or isinstance(self.current_token, SPACE):
+                if isinstance(self.current_token, NEWLINE):
+                    self.line_number += 1
+                self.next_token()
             return self.parse_if()
             
         elif isinstance(self.current_token, _call):
             self.next_token()
-            
+            while isinstance(self.current_token, NEWLINE) or isinstance(self.current_token, SPACE):
+                if isinstance(self.current_token, NEWLINE):
+                    self.line_number += 1
+                self.next_token()
             if not isinstance(self.current_token, (CONST, ID)):
                 print(f"Line {self.line_number}: Expected CONST or ID after call instruction")
                 return None
             self.next_token()
-                
+            while isinstance(self.current_token, NEWLINE) or isinstance(self.current_token, SPACE):
+                if isinstance(self.current_token, NEWLINE):
+                    self.line_number += 1
+                self.next_token()
         elif isinstance(self.current_token, _return):
             # No operands needed, just consume any values on stack
             self.next_token()
+            while isinstance(self.current_token, NEWLINE) or isinstance(self.current_token, SPACE):
+                if isinstance(self.current_token, NEWLINE):
+                    self.line_number += 1
+                self.next_token()
             return ControlFlowInstruction(_return)
 
         else:
@@ -373,6 +461,10 @@ class Parser:
         while not isinstance(self.current_token, RPAREN):
             if isinstance(self.current_token, LPAREN):
                 self.next_token()
+                while isinstance(self.current_token, NEWLINE) or isinstance(self.current_token, SPACE):
+                    if isinstance(self.current_token, NEWLINE):
+                        self.line_number += 1
+                    self.next_token()
                 if isinstance(self.current_token, ControlFlowInstruction):
                     nested_instr = self.parse_control_flow()
                     if nested_instr is None:
@@ -390,11 +482,19 @@ class Parser:
                     print(f"Line {self.line_number}: Expected ')' after nested instruction")
                     return None
                 self.next_token()
+                while isinstance(self.current_token, NEWLINE) or isinstance(self.current_token, SPACE):
+                    if isinstance(self.current_token, NEWLINE):
+                        self.line_number += 1
+                    self.next_token()
             else:
                 # Handle immediate values
                 if isinstance(self.current_token, (CONST, ID)):
                     operands.append(self.current_token.value)
                     self.next_token()
+                    while isinstance(self.current_token, NEWLINE) or isinstance(self.current_token, SPACE):
+                        if isinstance(self.current_token, NEWLINE):
+                            self.line_number += 1
+                        self.next_token()
                 elif isinstance(self.current_token, ControlFlowInstruction):
                     nested_instr = self.parse_control_flow()
                     if nested_instr is None:
@@ -419,6 +519,10 @@ class Parser:
         while not isinstance(self.current_token, RPAREN):
             if isinstance(self.current_token, LPAREN):
                 self.next_token()
+                while isinstance(self.current_token, NEWLINE) or isinstance(self.current_token, SPACE):
+                    if isinstance(self.current_token, NEWLINE):
+                        self.line_number += 1
+                    self.next_token()
                 if isinstance(self.current_token, ControlFlowInstruction):
                     nested_instr = self.parse_control_flow()
                     if nested_instr is None:
@@ -436,6 +540,10 @@ class Parser:
                     print(f"Line {self.line_number}: Expected ')' after nested instruction")
                     return None
                 self.next_token()
+                while isinstance(self.current_token, NEWLINE) or isinstance(self.current_token, SPACE):
+                    if isinstance(self.current_token, NEWLINE):
+                        self.line_number += 1
+                    self.next_token()
             else:
                 print(f'else in parse_loop, current_token : {self.current_token}')
 
@@ -443,6 +551,10 @@ class Parser:
                 if isinstance(self.current_token, (CONST, ID)):
                     operands.append(self.current_token.value)
                     self.next_token()
+                    while isinstance(self.current_token, NEWLINE) or isinstance(self.current_token, SPACE):
+                        if isinstance(self.current_token, NEWLINE):
+                            self.line_number += 1
+                        self.next_token()
                 elif isinstance(self.current_token, ControlFlowInstruction):
                     nested_instr = self.parse_control_flow()
                     print(f'nested_instr in parse_loop : {nested_instr}')
@@ -464,6 +576,10 @@ class Parser:
         if isinstance(self.current_token, (CONST, ID)):
             operand = self.current_token
             self.next_token()
+            while isinstance(self.current_token, NEWLINE) or isinstance(self.current_token, SPACE):
+                if isinstance(self.current_token, NEWLINE):
+                    self.line_number += 1
+                self.next_token()
             return ControlFlowInstruction(_br, {operand})
         else:
             print(f"Line {self.line_number}: Expected function index/name for br")
@@ -479,6 +595,10 @@ class Parser:
         while not isinstance(self.current_token, RPAREN):
             if isinstance(self.current_token, LPAREN):
                 self.next_token()
+                while isinstance(self.current_token, NEWLINE) or isinstance(self.current_token, SPACE):
+                    if isinstance(self.current_token, NEWLINE):
+                        self.line_number += 1
+                    self.next_token()
                 if isinstance(self.current_token, ControlFlowInstruction):
                     nested_instr = self.parse_control_flow()
                     if nested_instr is None:
@@ -496,11 +616,19 @@ class Parser:
                     print(f"Line {self.line_number}: Expected ')' after nested instruction")
                     return None
                 self.next_token()
+                while isinstance(self.current_token, NEWLINE) or isinstance(self.current_token, SPACE):
+                    if isinstance(self.current_token, NEWLINE):
+                        self.line_number += 1
+                    self.next_token()
             else:
                 # Handle immediate values
                 if isinstance(self.current_token, (CONST, ID)):
                     operands.append(self.current_token.value)
                     self.next_token()
+                    while isinstance(self.current_token, NEWLINE) or isinstance(self.current_token, SPACE):
+                        if isinstance(self.current_token, NEWLINE):
+                            self.line_number += 1
+                        self.next_token()
                 elif isinstance(self.current_token, ControlFlowInstruction):
                     nested_instr = self.parse_control_flow()
                     if nested_instr is None:
@@ -519,13 +647,25 @@ class Parser:
         # For 'if' instruction, handle else branch
         if isinstance(self.current_token, LPAREN):
             self.next_token()
+            while isinstance(self.current_token, NEWLINE) or isinstance(self.current_token, SPACE):
+                if isinstance(self.current_token, NEWLINE):
+                    self.line_number += 1
+                self.next_token()
             if isinstance(self.current_token, _else):
                 self.next_token()
+                while isinstance(self.current_token, NEWLINE) or isinstance(self.current_token, SPACE):
+                    if isinstance(self.current_token, NEWLINE):
+                        self.line_number += 1
+                    self.next_token()
                 else_operands = []
                     
                 while not isinstance(self.current_token, RPAREN):
                     if isinstance(self.current_token, LPAREN):
                         self.next_token()
+                        while isinstance(self.current_token, NEWLINE) or isinstance(self.current_token, SPACE):
+                            if isinstance(self.current_token, NEWLINE):
+                                self.line_number += 1
+                            self.next_token()
                         nested_instr = self.parse_instruction()
                         if nested_instr is None:
                             return None
@@ -535,6 +675,10 @@ class Parser:
                             print(f"Line {self.line_number}: Expected ')' after else instruction")
                             return None
                         self.next_token()
+                        while isinstance(self.current_token, NEWLINE) or isinstance(self.current_token, SPACE):
+                            if isinstance(self.current_token, NEWLINE):
+                                self.line_number += 1
+                            self.next_token()
                     else:
                         break
                     
@@ -557,7 +701,10 @@ class Parser:
 
         op = type(self.current_token).__name__[1:].replace('_', '.')
         self.next_token()
-
+        while isinstance(self.current_token, NEWLINE) or isinstance(self.current_token, SPACE):
+            if isinstance(self.current_token, NEWLINE):
+                self.line_number += 1
+            self.next_token()
         operands = []
         # instructions = []
         
@@ -568,6 +715,10 @@ class Parser:
             while not isinstance(self.current_token, RPAREN):
                 if isinstance(self.current_token, LPAREN):
                     self.next_token()
+                    while isinstance(self.current_token, NEWLINE) or isinstance(self.current_token, SPACE):
+                        if isinstance(self.current_token, NEWLINE):
+                            self.line_number += 1
+                        self.next_token()
                     if isinstance(self.current_token, ControlFlowInstruction):
                         nested_instr = self.parse_control_flow()
                         if nested_instr is None:
@@ -585,24 +736,44 @@ class Parser:
                         print(f"Line {self.line_number}: Expected ')' after nested instruction")
                         return None
                     self.next_token()
+                    while isinstance(self.current_token, NEWLINE) or isinstance(self.current_token, SPACE):
+                        if isinstance(self.current_token, NEWLINE):
+                            self.line_number += 1
+                        self.next_token()
                 else:
                     # Handle immediate values
                     if isinstance(self.current_token, (CONST, ID)):
                         operands.append(self.current_token.value)
                         self.next_token()
+                        while isinstance(self.current_token, NEWLINE) or isinstance(self.current_token, SPACE):
+                            if isinstance(self.current_token, NEWLINE):
+                                self.line_number += 1
+                            self.next_token()
                     else:
                         break
             
             # For 'if' instruction, handle else branch
             if op == 'if' and isinstance(self.current_token, LPAREN):
                 self.next_token()
+                while isinstance(self.current_token, NEWLINE) or isinstance(self.current_token, SPACE):
+                    if isinstance(self.current_token, NEWLINE):
+                        self.line_number += 1
+                    self.next_token()
                 if isinstance(self.current_token, _else):
                     self.next_token()
+                    while isinstance(self.current_token, NEWLINE) or isinstance(self.current_token, SPACE):
+                        if isinstance(self.current_token, NEWLINE):
+                            self.line_number += 1
+                        self.next_token()
                     else_operands = []
                     
                     while not isinstance(self.current_token, RPAREN):
                         if isinstance(self.current_token, LPAREN):
                             self.next_token()
+                            while isinstance(self.current_token, NEWLINE) or isinstance(self.current_token, SPACE):
+                                if isinstance(self.current_token, NEWLINE):
+                                    self.line_number += 1
+                                self.next_token()
                             nested_instr = self.parse_instruction()
                             if nested_instr is None:
                                 return None
@@ -612,6 +783,10 @@ class Parser:
                                 print(f"Line {self.line_number}: Expected ')' after else instruction")
                                 return None
                             self.next_token()
+                            while isinstance(self.current_token, NEWLINE) or isinstance(self.current_token, SPACE):
+                                if isinstance(self.current_token, NEWLINE):
+                                    self.line_number += 1
+                                self.next_token()
                         else:
                             break
                     
@@ -635,6 +810,10 @@ class Parser:
             if isinstance(self.current_token, (CONST, ID)):
                 operands.append(self.current_token.value)
                 self.next_token()
+                while isinstance(self.current_token, NEWLINE) or isinstance(self.current_token, SPACE):
+                    if isinstance(self.current_token, NEWLINE):
+                        self.line_number += 1
+                    self.next_token()
             else:
                 print(f"Line {self.line_number}: Expected function index/name for call")
                 return None
@@ -643,6 +822,10 @@ class Parser:
             while not isinstance(self.current_token, RPAREN):
                 if isinstance(self.current_token, LPAREN):
                     self.next_token()
+                    while isinstance(self.current_token, NEWLINE) or isinstance(self.current_token, SPACE):
+                        if isinstance(self.current_token, NEWLINE):
+                            self.line_number += 1
+                        self.next_token()
                     nested_instr = self.parse_instruction()
                     if nested_instr is None:
                         return None
@@ -652,6 +835,10 @@ class Parser:
                         print(f"Line {self.line_number}: Expected ')' after call argument")
                         return None
                     self.next_token()
+                    while isinstance(self.current_token, NEWLINE) or isinstance(self.current_token, SPACE):
+                        if isinstance(self.current_token, NEWLINE):
+                            self.line_number += 1
+                        self.next_token()
                 else:
                     break
         
@@ -697,16 +884,27 @@ class Parser:
         
         if isinstance(self.current_token, BinaryInstruction):
             self.next_token()
+            while isinstance(self.current_token, NEWLINE) or isinstance(self.current_token, SPACE):
+                if isinstance(self.current_token, NEWLINE):
+                    self.line_number += 1
+                self.next_token()
             return BinaryInstruction(op, operands)
         
         self.next_token()
-        
+        while isinstance(self.current_token, NEWLINE) or isinstance(self.current_token, SPACE):
+            if isinstance(self.current_token, NEWLINE):
+                self.line_number += 1
+            self.next_token()
         while not isinstance(self.current_token, RPAREN):
             if isinstance(self.current_token, (CONST, ID)):
                 operands.append(self.current_token.value)
                 
             elif isinstance(self.current_token, LPAREN):
                 self.next_token()
+                while isinstance(self.current_token, NEWLINE) or isinstance(self.current_token, SPACE):
+                    if isinstance(self.current_token, NEWLINE):
+                        self.line_number += 1
+                    self.next_token()
                 nested_instr = self.parse_instruction()
                 if nested_instr is None:
                     return None
@@ -719,7 +917,10 @@ class Parser:
                 return None
                 
             self.next_token()
-        
+            while isinstance(self.current_token, NEWLINE) or isinstance(self.current_token, SPACE):
+                if isinstance(self.current_token, NEWLINE):
+                    self.line_number += 1
+                self.next_token()
         print(f'In parse_instruction : {Instruction(op, operands)}')
         return op_class     # Instruction(op, operands)
         # else:
@@ -729,6 +930,10 @@ class Parser:
     def parse_export(self):
         export = Export()
         self.next_token()
+        while isinstance(self.current_token, NEWLINE) or isinstance(self.current_token, SPACE):
+            if isinstance(self.current_token, NEWLINE):
+                self.line_number += 1
+            self.next_token()
         if self.current_token is None:
             print("Unexpected EOF in export")
             return None
@@ -742,17 +947,29 @@ class Parser:
         
         export.value = self.current_token
         self.next_token()   
+        while isinstance(self.current_token, NEWLINE) or isinstance(self.current_token, SPACE):
+            if isinstance(self.current_token, NEWLINE):
+                self.line_number += 1
+            self.next_token()
         if not isinstance(self.current_token, LPAREN):
             print(f"Line {self.line_number}: Expected '(' after export name")
             return None
             
         self.next_token()
+        while isinstance(self.current_token, NEWLINE) or isinstance(self.current_token, SPACE):
+            if isinstance(self.current_token, NEWLINE):
+                self.line_number += 1
+            self.next_token()
         # print(self.current_token)
         if not isinstance(self.current_token, Func):
             print(f"Line {self.line_number}: Expected 'func' after '(' in export")
             return None
         
         self.next_token()
+        while isinstance(self.current_token, NEWLINE) or isinstance(self.current_token, SPACE):
+            if isinstance(self.current_token, NEWLINE):
+                self.line_number += 1
+            self.next_token()
         # print(self.current_token)
         if not isinstance(self.current_token, ID):
             print(f"Line {self.line_number}: Expected funcction name after 'func' in export")
@@ -769,10 +986,18 @@ class Parser:
 
         export.exp_func = exp_func
         self.next_token()
+        while isinstance(self.current_token, NEWLINE) or isinstance(self.current_token, SPACE):
+            if isinstance(self.current_token, NEWLINE):
+                self.line_number += 1
+            self.next_token()
         if not isinstance(self.current_token, RPAREN):
             print(f"Line {self.line_number}: Expected token ')' after function name in export")
             return None
         self.next_token()
+        while isinstance(self.current_token, NEWLINE) or isinstance(self.current_token, SPACE):
+            if isinstance(self.current_token, NEWLINE):
+                self.line_number += 1
+            self.next_token()
         if not isinstance(self.current_token, RPAREN):
             print(f"Line {self.line_number}: Expected token ')' in export")
             return None
@@ -782,18 +1007,30 @@ class Parser:
     def parse_memory(self):
         mem = Memory()
         self.next_token()
+        while isinstance(self.current_token, NEWLINE) or isinstance(self.current_token, SPACE):
+            if isinstance(self.current_token, NEWLINE):
+                self.line_number += 1
+            self.next_token()
         # mem_name = None
         if not isinstance(self.current_token, ID):
             print(f"Line {self.line_number}: Expected memory name after 'mem'")
             return None
         mem.name = self.current_token.value
         self.next_token() 
+        while isinstance(self.current_token, NEWLINE) or isinstance(self.current_token, SPACE):
+            if isinstance(self.current_token, NEWLINE):
+                self.line_number += 1
+            self.next_token()
         if not isinstance(self.current_token, CONST):
             print(f"Line {self.line_number}: Expected a CONST after memory name")
             return None
         mem.value = self.current_token
         # self.module.mems.append(mem)
         self.next_token()
+        while isinstance(self.current_token, NEWLINE) or isinstance(self.current_token, SPACE):
+            if isinstance(self.current_token, NEWLINE):
+                self.line_number += 1
+            self.next_token()
         if not isinstance(self.current_token, RPAREN):
             print(f"Line {self.line_number}: Expected token ')' in memory")
             return None
