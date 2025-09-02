@@ -22,7 +22,8 @@ class Memory:
     def __init__(self, name=None, value=None):
         self.name = name
         self.value = value
-    def __repr__(self): return f"Memory: {self.name} {self.value})"
+    def __repr__(self): 
+        return f"Memory: {self.name} {self.value})"
    
 class Func:
     def __init__(self, name=None, export_name = None, params=None, results=None, locals=None, body=None):
@@ -54,7 +55,8 @@ class Export:
     def __init__(self, value=None, exp_func=Func()):
         self.value = value
         self.exp_func = exp_func
-    def __repr__(self): return f"Export: ({self.value}, exp_func={self.exp_func.name})"
+    def __repr__(self): 
+        return f"Export: ({self.value}, exp_func={self.exp_func.name})"
  
 class Instruction:
     def __init__(self, op=None, operands=None):
@@ -89,33 +91,40 @@ class Local:
 
 
 class LPAREN:
-    def __repr__(self): return "LPAREN()"
+    def __repr__(self): 
+        return "LPAREN()"
 
 class RPAREN:
-    def __repr__(self): return "RPAREN()"
+    def __repr__(self): 
+        return "RPAREN()"
 
 class ID:
     def __init__(self, value=None): 
         self.value = value
-    def __repr__(self): return f"ID({self.value})"
+    def __repr__(self): 
+        return f"ID({self.value})"
 
 class TYPE:
     def __init__(self, value): 
         self.value = value
-    def __repr__(self): return f"TYPE({self.value})"
+    def __repr__(self): 
+        return f"TYPE({self.value})"
     
 class CONST:
     def __init__(self, value): 
         self.value = value
-    def __repr__(self): return f"CONST({self.value})"
+    def __repr__(self): 
+        return f"CONST({self.value})"
 
 class STRING:
     def __init__(self, value): 
         self.value = value
-    def __repr__(self): return f"STRING({self.value})"
+    def __repr__(self): 
+        return f"STRING({self.value})"
 
 class EOF:
-    def __repr__(self): return "EOF()"
+    def __repr__(self): 
+        return "EOF()"
 
 # TODO: Further
 # class Module: pass
@@ -195,7 +204,8 @@ class BinaryInstruction(Instruction):
     #     return f"{indent_str}{self.operand1} {self.op} {self.operand2}"
         
 class _i32_const(Instruction): 
-    def __repr__(self): return "_i32_const"
+    def __repr__(self): 
+        return "_i32_const"
     
 class _i32_add(BinaryInstruction):
     def __init__(self, op=None, operands=None):
@@ -247,6 +257,19 @@ class _br(ControlFlowInstruction): pass
 class _br_if(ControlFlowInstruction): pass
 class _if(ControlFlowInstruction): pass
 class _else(ControlFlowInstruction): pass
+
+class NEWLINE:
+    def __init__(self):
+        pass
+    def __repr__(self): 
+        return f"NEWLINE(\\n)"
+
+class SPACE:
+    def __init__(self, value): 
+        self.value = value
+    def __repr__(self): 
+        return f"SPACE({self.value})"
+
 
 # Keyword and Instruction Sets
 KEYWORDS = {
@@ -316,12 +339,15 @@ class Lexer:
         
         # print(wat)
         
-        while self.pos < len(self.input):
-            c = self.input[self.pos]
+        while self.pos < len(wat):
+            c = wat[self.pos]
             
             if c.isspace():
                 if c == '\n':
+                    self.tokens.append(NEWLINE())
                     self.line_number += 1
+                else:
+                    self.tokens.append(SPACE(c))
                 self.pos += 1
             
             elif c == ';':
@@ -332,15 +358,15 @@ class Lexer:
             elif c == '"':
                 start = self.pos
                 self.pos += 1
-                while self.pos < len(self.input) and self.input[self.pos] != '"':
-                    if self.input[self.pos] == '\\' and self.pos + 1 < len(self.input):
+                while self.pos < len(wat) and wat[self.pos] != '"':
+                    if wat[self.pos] == '\\' and self.pos + 1 < len(wat):
                         self.pos += 1
                     self.pos += 1
-                if self.pos >= len(self.input):
+                if self.pos >= len(wat):
                     print(f"Line {self.line_number}: Unclosed string literal")
                     return None
                 self.pos += 1
-                self.tokens.append(STRING(self.input[start:self.pos]))
+                self.tokens.append(STRING(wat[start:self.pos]))
             
             elif c == '(':
                 self.tokens.append(LPAREN())
@@ -350,22 +376,22 @@ class Lexer:
                 self.tokens.append(RPAREN())
                 self.pos += 1
             
-            elif c.isdigit() or (c == '-' and self.pos + 1 < len(self.input) and self.input[self.pos+1].isdigit()):
+            elif c.isdigit() or (c == '-' and self.pos + 1 < len(wat) and wat[self.pos+1].isdigit()):
                 start = self.pos
                 if c == '-':
                     self.pos += 1
-                while self.pos < len(self.input) and (self.input[self.pos].isdigit() or 
-                     self.input[self.pos].lower() in {'x', 'a', 'b', 'c', 'd', 'e', 'f'}):
+                while self.pos < len(wat) and (wat[self.pos].isdigit() or 
+                     wat[self.pos].lower() in {'x', 'a', 'b', 'c', 'd', 'e', 'f'}):
                     self.pos += 1
-                self.tokens.append(CONST(self.input[start:self.pos]))
+                self.tokens.append(CONST(wat[start:self.pos]))
             
             elif c.isalpha() or c in {'_', '$'}:
                 start = self.pos
                 self.pos += 1
-                while self.pos < len(self.input) and (self.input[self.pos].isalnum() or 
-                     self.input[self.pos] in {'_', '.', '-'}):
+                while self.pos < len(wat) and (wat[self.pos].isalnum() or 
+                     wat[self.pos] in {'_', '.', '-'}):
                     self.pos += 1
-                lexeme = self.input[start:self.pos]
+                lexeme = wat[start:self.pos]
                 
                 token_class = self.get_token_class(lexeme)
                 # print("lexer: lex_verb_flag: " + str(lex_verb_flag))
@@ -384,8 +410,9 @@ class Lexer:
             else:
                 print(f"Line {self.line_number}: Illegal character '{c}'")
                 return None
-        
+            
+            # if c == '\n':
+            #     print("c == '\n'")
         self.tokens.append(EOF())
-        
         
         return self.tokens
