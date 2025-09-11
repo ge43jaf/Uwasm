@@ -71,6 +71,10 @@ class Validator:
             funcs_names.append(func.name)
             
         for exported_func in self.module.exports:
+            if not exported_func.exp_func or not exported_func.exp_func.name:
+                print(f"Export error: Missing function reference in export")
+                return None
+            
             # print(type(exported_func.exp_func.name))
             if exported_func.exp_func.name not in funcs_names:
                 print(f"Unexpected function to export: {exported_func}")
@@ -211,17 +215,3 @@ class Validator:
                 else:
                     pass
     
-# 2025-08-04
-# Parser for other control flow instructions
-# Parse function signature in the order of Param, Result, Local
-# Export checking in Interpreter
-# Stack checking in Interpreter
-# Paper structure alright?
-
-
-#2025-08-11
-# started writing these draft based on the structure discussed
-# wasm2wat not working
-# identifier name checking in Interpreter
-# floating number checking in Interpreter
-# Try wasmtime, package installation error

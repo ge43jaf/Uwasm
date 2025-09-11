@@ -257,7 +257,9 @@ class Parser:
 
                 # Check closing parenthesis for this if branch
                 if not isinstance(self.current_token, RPAREN):
-                    print(f"Line {self.line_number}: Expected ')' after func element")
+                    print(f"Line {self.line_number}: Expected ')' after func element")      # TODO : param i32 i32
+                    print(self.current_token)
+                    print(self.next_token)
                     return None
                 self.next_token()
                 while isinstance(self.current_token, NEWLINE) or isinstance(self.current_token, SPACE):
@@ -297,6 +299,9 @@ class Parser:
                 
             elif isinstance(self.current_token, Instruction):
                 print('Currrent Instruction without (...) surrounded' + str(type(self.current_token)))
+                
+                self.next_token()
+                
                 continue
             else:
                 print(f"Line {self.line_number}: Instruction {self.current_token} in function {func.name} not found!")
@@ -350,7 +355,7 @@ class Parser:
                 if isinstance(self.current_token, NEWLINE):
                     self.line_number += 1
                 self.next_token()
-        if isinstance(self.current_token, ID):
+        if isinstance(self.current_token, TYPE):
             local.type = self.current_token.value
             self.next_token()
             while isinstance(self.current_token, NEWLINE) or isinstance(self.current_token, SPACE):
@@ -416,7 +421,12 @@ class Parser:
             return self.parse_br()
 
         elif isinstance(self.current_token, _br_if):
-            pass
+            self.next_token()
+            while isinstance(self.current_token, NEWLINE) or isinstance(self.current_token, SPACE):
+                if isinstance(self.current_token, NEWLINE):
+                    self.line_number += 1
+                self.next_token()
+            return self.parse_br_if()
         
         elif isinstance(self.current_token, _if):
             self.next_token()

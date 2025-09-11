@@ -1,6 +1,7 @@
 from Lexer import Lexer
 from Parser import Parser
 from Validator import Validator
+from ASTPrinter import ASTPrinter, EnhancedASTPrinter
 import pprint
 
 import argparse
@@ -33,7 +34,7 @@ wat_code_0 = """
     )
     """
 
-wat_code = """
+wat_code______to_test = """
 (module
   ;;(import "console" "log" (func $log (param i32)))
   (func $fib (param $fib i32) (result i32)
@@ -93,6 +94,22 @@ wat_code = """
   (export "fib" (func $fib))
 )
 """
+wat_code = """(module
+(memory $mem1 1)
+  (func $add (param $a i32) (param $b i32) (result i32)
+            (local $a i32)
+            (local $b i32)
+            (local.get $a)
+            (local.get $b)
+            (i32.add)
+        )
+        (export "add" (func $add))
+        (export "add" (func $ad))
+        )
+
+    
+"""
+# TODO : export check name existance, etc.
 
 try:
     with open('../tests/success/test004_export.wat', 'r') as file:
@@ -130,6 +147,21 @@ parser.add_argument(
     action='store_true',
     help="Validate the programm based on the generated AST"
 )
+
+parser.add_argument(
+    '-b',
+    '--branch',
+    action='store_true',
+    help="Generate AST with branch structure"
+)
+
+parser.add_argument(
+    '-c',
+    '--color',
+    action='store_true',
+    help="Generate AST with branch and colorized keywords"
+)
+
 
 args = parser.parse_args()
 
@@ -206,6 +238,14 @@ if True:
 
 
 ast = parser.parse(tokens)
+astPrinter = ASTPrinter()
+enhancedAstPrinter = EnhancedASTPrinter()
+
+if args.branch:
+    astPrinter.print_ast(ast)
+elif args.color:
+    enhancedAstPrinter.print_ast(ast)
+
 if ast is None:
     print("Parsing failed")
 
