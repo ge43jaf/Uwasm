@@ -238,7 +238,12 @@ class _local_get(Instruction):
         super().__init__(op, operands)
     def __repr__(self): 
         return "_local_get"
-class _local_set: pass
+class _local_set(Instruction):
+    def __init__(self, op=None, operands=None):
+        print("_local_set op : " + str(op) + " operands : " + str(operands))
+        super().__init__(op, operands)
+    def __repr__(self): 
+        return "_local_set"
 class _local_tee: pass
 class _global_get: pass
 class _global_set: pass
@@ -316,6 +321,7 @@ class Lexer:
     def __init__(self):
         self.line_number = 1
         self.lex_verb_flag = False
+        self.lex_col_flag = False
         
     def get_token_class(self, lexeme):
         if lexeme in KEYWORDS:

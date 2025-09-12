@@ -38,7 +38,8 @@ class Validator:
         self.tokens = []
         self.module = None
         # self.funcs = []
-    
+        self.val_col_flag = False
+        
     def next_token(self):
         self.token_index += 1
         if self.token_index < len(self.tokens):
@@ -64,7 +65,7 @@ class Validator:
         pass
     
     # Export and Definition Checking
-    def check_export(self):
+    def check_export(self):             # TODO: call by function index?
         funcs_names = []
         for func in self.module.funcs:
             # print(type(func.name))
@@ -215,3 +216,7 @@ class Validator:
                 else:
                     pass
     
+    def _val_colorize(self, text, color_key):
+        if self.val_col_flag:
+            return f"{COLORS[color_key]}{text}{COLORS['RESET_COLOR']}"
+        return text

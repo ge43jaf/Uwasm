@@ -205,33 +205,33 @@ class EnhancedASTPrinter(ASTPrinter):
         self.last_branch_str = "└── "
         self.use_colors = use_colors
         self.max_depth = max_depth
-        self.current_depth = 0
+        # self.current_depth = 0
         
         # ANSI color codes
         self.colors = {
-            'Module': '\033[1;34m',      # Bold blue
+            'Module': '\033[1;34m',          # Bold blue
             
-            'Memory': '\033[1;35m',         # Bold magenta
+            'Memory': '\033[1;35m',          # Bold magenta
             'Function': '\033[1;32m',        # Bold green
                 'Param': '\033[0;32m',       # Green
                 'Local': '\033[0;33m',       # Yellow
-            'Export': '\033[1;33m',         # Bold yellow
+            'Export': '\033[1;33m',          # Bold yellow
             
-            'Instruction': '\033[1;36m', # Bold cyan
+            'Instruction': '\033[1;36m',     # Bold cyan
             
-            'Type': '\033[0;36m',        # Cyan
-            'Reset': '\033[0m'           # Reset
+            'Type': '\033[0;36m',            # Cyan
+            'Reset': '\033[0m'               # Reset
         }
     
     def _colorize(self, text, color_key):
-        """Add color to text if colors are enabled"""
+
         if self.use_colors and color_key in self.colors:
             return f"{self.colors[color_key]}{text}{self.colors['Reset']}"
         return text
     
     def print_ast(self, ast, show_types=False):
-        """Print the AST with optional depth limiting"""
-        self.current_depth = 0
+
+        # self.current_depth = 0
         if isinstance(ast, Module):
             print(self._colorize("Module", 'Module'))
             self._print_module(ast, "", show_types)
@@ -239,14 +239,14 @@ class EnhancedASTPrinter(ASTPrinter):
             self._print_node(ast, "", True, show_types)
     
     def _print_module(self, module, prefix, show_types):
-        """Print module contents with depth checking"""
-        if self.max_depth is not None and self.current_depth >= self.max_depth:
-            print(f"{prefix}{self.last_branch_str}...")
-            return
+        # Depth checking
+        # if self.max_depth is not None and self.current_depth >= self.max_depth:
+        #     print(f"{prefix}{self.last_branch_str}...")
+        #     return
             
-        self.current_depth += 1
+        # self.current_depth += 1
         self._print_module_or(module, prefix, show_types)
-        self.current_depth -= 1
+        # self.current_depth -= 1
     
     def _print_module_or(self, module, prefix, show_types):
 
@@ -277,7 +277,7 @@ class EnhancedASTPrinter(ASTPrinter):
             self._print_node(child, new_prefix, is_last, show_types)
             
     def _print_node(self, node, prefix, is_last, show_types):
-        """Recursively print AST nodes"""
+        
         if isinstance(node, Memory):
             self._print_memory(node, prefix, is_last, show_types)
         elif isinstance(node, Func):
@@ -292,7 +292,7 @@ class EnhancedASTPrinter(ASTPrinter):
             self._print_object(node, prefix, is_last, show_types)
             
     def _print_function(self, func, prefix, is_last, show_types):
-        """Print function with colored output"""
+
         # name_display = func.name if func.name else "[anonymous]"
         # print(f"{prefix}{self.last_branch_str if is_last else self.branch_str}"
         #       f"{self._colorize('Function', 'function')}: {self._colorize(name_display, 'function')}")
@@ -301,7 +301,7 @@ class EnhancedASTPrinter(ASTPrinter):
         self._print_function_details(func, new_prefix, show_types)
     
     def _print_function_details(self, func, prefix, show_types):
-        """Print function details with proper formatting"""
+
         # Signature line
         params = ", ".join([f"{p.name}: {self._colorize(p.type, 'Type')}" 
                            for p in func.params]) if func.params else "none"
@@ -322,7 +322,7 @@ class EnhancedASTPrinter(ASTPrinter):
             self._print_node(func.body, body_prefix, True, show_types)
     
     def _print_instruction(self, instr, prefix, is_last, show_types):
-        """Print instructions with colored output"""
+
         instr_name = getattr(instr, 'op', type(instr).__name__)
         colored_instr = self._colorize(instr_name, 'Instruction')
         
@@ -334,7 +334,7 @@ class EnhancedASTPrinter(ASTPrinter):
             print(f"{prefix}{self.last_branch_str if is_last else self.branch_str}{colored_instr}")
     
     def _print_operands(self, operands, prefix, show_types):
-        """Print instruction operands"""
+
         if isinstance(operands, dict):
             for i, (key, value) in enumerate(operands.items()):
                 if value:

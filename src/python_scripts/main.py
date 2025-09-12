@@ -4,11 +4,13 @@ from Validator import Validator
 from ASTPrinter import ASTPrinter, EnhancedASTPrinter
 import pprint
 
+import os
 import argparse
 from pathlib import Path
 
 verb_flag = False
 valid_flag = False
+color_flag = False
 
 wat_code_0 = """
     (module
@@ -184,14 +186,14 @@ def run_tests():
                 if tokens is None:
                     print("Lexical analysis failed")
 
-                    
-                print("Tokens:")
-                for token in tokens:
-                    print(token)
+                # if args.verbose:    
+                #     print("Tokens:")
+                #     for token in tokens:
+                #         print(token)
                     
                 ast = parser.parse(tokens)
                 if ast is None:
-                    print("Parsing failed")
+                    print("\033[31mParsing failed\033[0m")
                 print(f"Test {test_file.name} completed")
 
 
@@ -206,6 +208,8 @@ elif args.verbose:
     
 elif args.interprete:
     valid_flag = True
+elif args.color:
+    color_flag = True
 else:
     print("Error: Either specify an input file or use -t to run tests")
     parser.print_help()
@@ -217,21 +221,31 @@ if verb_flag:
 
 lexer = Lexer()
 parser = Parser()
-    
+validator = Validator()
+
 if verb_flag:
     lexer.lex_verb_flag = True
     parser.par_verb_flag = True
 else:
     lexer.lex_verb_flag = False
     parser.par_verb_flag = False
+
+if color_flag:
+    lexer.lex_col_flag = True
+    parser.par_col_flag = True
+    validator.val_col_flag = True
+else:
+    lexer.lex_col_flag = False
+    parser.par_col_flag = False
+    validator.val_col_flag = False
     
 print("lexer.lex_verb_flag: " + str(lexer.lex_verb_flag), "\nparser.par_verb_flag: " + str(parser.par_verb_flag) )
 tokens = lexer.tokenize(wat_code)
 if tokens is None:
     print("Lexical analysis failed")
 
-# if verb_flag:
-if True:
+if verb_flag:
+# if True:
     print("Tokens:")
     for token in tokens:
         print(token)
@@ -257,5 +271,5 @@ pprint.pprint(ast)
 
 # print(ast.funcs)
 # print(ast.exports)
-validator = Validator()
+
 validator.validate(ast)
