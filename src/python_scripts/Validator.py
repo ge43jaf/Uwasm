@@ -38,6 +38,7 @@ class Validator:
         self.tokens = []
         self.module = None
         # self.funcs = []
+        self.line_number = 1
         self.val_col_flag = False
         
     def next_token(self):
@@ -57,9 +58,15 @@ class Validator:
         self.module = ast
         # self.current_token = self.tokens[0]
         
-        self.check_export()
-        self.check_stack()
-        self.check_identifier()
+        ce = self.check_export()
+        cs = self.check_stack()
+        ci = self.check_identifier()
+        cf = self.check_floating_number()
+        
+        if ce and cs and ci and cf:
+            return True
+        else:
+            return False
         
     def check_func_signature(self):
         pass
@@ -73,16 +80,21 @@ class Validator:
             
         for exported_func in self.module.exports:
             if not exported_func.exp_func or not exported_func.exp_func.name:
+                print(self._val_colorize("ERROR: ", 'ERROR_COLOR'), end="\n     ")
                 print(f"Export error: Missing function reference in export")
                 return None
             
             # print(type(exported_func.exp_func.name))
+            # print(exported_func.exp_func.name)
+            # print(funcs_names)
             if exported_func.exp_func.name not in funcs_names:
+                print(self._val_colorize("ERROR: ", 'ERROR_COLOR'), end="\n     ")
                 print(f"Unexpected function to export: {exported_func}")
                 return None
             
             print(f"Export checking successful")
-            
+        return True
+    
     # Stack Checking
     def check_stack(self):
         
@@ -107,6 +119,7 @@ class Validator:
                     
                 if isinstance(instr, _local_tee):
                     if stack.pop() != "i32":
+                        print(self._val_colorize("ERROR: ", 'ERROR_COLOR'), end="\n     ")
                         print("local.tee instrution waits for a i32 on stack!")
                         return None
                     stack.append("i32")
@@ -118,25 +131,30 @@ class Validator:
                         op1 = stack.pop()
                         op2 = stack.pop()
                         if op1 != "i32":
+                            print(self._val_colorize("ERROR: ", 'ERROR_COLOR'), end="\n     ")
                             print(f"TypeError: op1 for BinaryInstruction {instr}")
                             return None
                         if op2 != "i32":
+                            print(self._val_colorize("ERROR: ", 'ERROR_COLOR'), end="\n     ")
                             print(f"TypeError: op2 for BinaryInstruction {instr}")
                             return None
                         stack.append("i32")
                         
                     else:
+                        print(self._val_colorize("ERROR: ", 'ERROR_COLOR'), end="\n     ")
                         print(f"Stack error: not enough operands for BinaryInstruction")
                         return None
                         
         print(f"Stack checking successful")
-        
+        return True
+    
     def check_identifier(self):
         id_set =set()
         
         for mem in self.module.mems:
             print("TestMemmmmmmmmmmmmmmm")
             if not mem.name.startswith("$"):
+                print(self._val_colorize("ERROR: ", 'ERROR_COLOR'), end="\n     ")
                 print(f"MemoryIdentifierNameError: {mem.name}, should start with '$'")
                 return None
         
@@ -152,6 +170,7 @@ class Validator:
                 # return None
                 pass
             elif not func.name.startswith("$"):
+                print(self._val_colorize("ERROR: ", 'ERROR_COLOR'), end="\n     ")
                 print(f"FunctionIdentifierNameError: {func.name}, should start with '$'")
                 return None
             else:
@@ -167,6 +186,7 @@ class Validator:
                     # return None
                     pass
                 elif not param.name.startswith("$"):
+                    print(self._val_colorize("ERROR: ", 'ERROR_COLOR'), end="\n     ")
                     print(f"ParameterIdentifierNameError: {param.name}, should start with '$'")
                     return None
                 else:
@@ -182,41 +202,55 @@ class Validator:
                     # return None
                     pass
                 elif not local.name.startswith("$"):
+                    print(self._val_colorize("ERROR: ", 'ERROR_COLOR'), end="\n     ")
                     print(f"LocalIdentifierNameError: {local.name}, should start with '$'")
                     return None
                 else:
                     func_id_set.add(local.name)
             #TODO : check id in instructions    
-                
+        
+        return True
+    
     def check_floating_number(self):
         for func in self.module.funcs:
                 
             for param in func.params:
                 if not param.type:
                     # print(f'{func}')
+                    print(self._val_colorize("ERROR: ", 'ERROR_COLOR'), end="\n     ")
                     print(f"ParameterTypeError: parameter type NoneType")
                     return None
                 
-                elif not param.type != "i32":
+                elif param.type != "i32":
+                    # print("typeof param.type : " + str(type(param.type)))
+                    # print('typeof "i32" : ' + str(type("i32")))
+                    
+                    print(self._val_colorize("ERROR: ", 'ERROR_COLOR'), end="\n     ")  
                     print(f"ParameterTypeError: {param.type}, should be i32")
                     return None
                 else:
                     pass
-                    
+
             for local in func.locals:
                 if not local.type:
                     # TODO: wait for wasm2wat
                     # print(f'{func}')
+                    print(self._val_colorize("ERROR: ", 'ERROR_COLOR'), end="\n     ")  
                     print(f"LocalTypeError: local type NoneType")
                     return None
                 
-                elif not local.type != "i32":
-                    print(f"LocalTypeError: {local.type}, should be i32")
+                elif local.type != "i32":
+                    print(self._val_colorize("ERROR: ", 'ERROR_COLOR'), end="\n     ")  
+                    print(f"Line {self.line_number}: LocalTypeError: {local.type}, should be i32")
                     return None
                 else:
                     pass
+        return True
     
     def _val_colorize(self, text, color_key):
         if self.val_col_flag:
             return f"{COLORS[color_key]}{text}{COLORS['RESET_COLOR']}"
         return text
+    
+    # def check_binary_instruction(self):
+        

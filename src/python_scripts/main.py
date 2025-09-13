@@ -5,6 +5,7 @@ from ASTPrinter import ASTPrinter, EnhancedASTPrinter
 import pprint
 
 import os
+import sys
 import argparse
 from pathlib import Path
 
@@ -103,10 +104,10 @@ wat_code = """(module
             (local $b i32)
             (local.get $a)
             (local.get $b)
-            (i32.add)
+            (i32.lt_s)
         )
         (export "add" (func $add))
-        (export "add" (func $ad))
+        
         )
 
     
@@ -164,7 +165,7 @@ parser.add_argument(
     help="Generate AST with branch and colorized keywords"
 )
 
-
+parser.add_argument('file', type=argparse.FileType('r'))
 args = parser.parse_args()
 
 def run_tests():
@@ -181,7 +182,8 @@ def run_tests():
                 
                 lexer = Lexer()
                 parser = Parser()
-                    
+                validator = Validator()
+                
                 tokens = lexer.tokenize(test_file.read_text())
                 if tokens is None:
                     print("Lexical analysis failed")
@@ -194,22 +196,49 @@ def run_tests():
                 ast = parser.parse(tokens)
                 if ast is None:
                     print("\033[31mParsing failed\033[0m")
+                    
+                vv = validator.validate(ast)
+                if vv:
+                    print("\033[1;32mValidation passed\033[0m")
+                else:
+                    print("\033[31mValidation failed\033[0m")
                 print(f"Test {test_file.name} completed")
 
 
 if args.test:
     run_tests()
-elif args.ast:
+if args.ast:
     verb_flag = False
     valid_flag = False
     
-elif args.verbose:
+if args.verbose:
     verb_flag = True
     
-elif args.interprete:
+if args.interprete:
     valid_flag = True
-elif args.color:
+if args.color:
     color_flag = True
+# Check if file was successfully opened
+if args.file:
+    print(f"File '{args.file.name}' opened successfully")
+        
+    # work with the file object
+    try:
+        # Read and process the file content
+        wat_code = args.file.read()
+        
+        # Or read line by line
+        # args.file.seek(0)  # Reset file pointer to beginning
+        # lines = args.file.readlines()
+        # print(f"Number of lines: {len(lines)}")
+            
+    except Exception as e:
+        print(f"Error reading file: {e}")
+        sys.exit(1)
+            
+    finally:
+        # Always close the file
+        args.file.close()
 else:
     print("Error: Either specify an input file or use -t to run tests")
     parser.print_help()

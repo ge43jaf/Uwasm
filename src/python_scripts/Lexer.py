@@ -167,7 +167,7 @@ class ControlFlowInstruction(Instruction):
                 operands_str.append(f"\n      {op.__repr__(indent+1)}")
             else:
                 operands_str.append(f"{indent_str}  {op}")
-        print(f'operands_str inside Class ControlFlowInstruction : {operands_str}')
+        # print(f'operands_str inside Class ControlFlowInstruction : {operands_str}')
         operands = "\n    ".join(operands_str)
         # print(f'operands inside Class ControlFlowInstruction : {operands}')
         return f"{indent_str}{self.op}:  {operands}"
@@ -229,10 +229,18 @@ class _i32_gt_s(BinaryInstruction):
     def __repr__(self): 
         return "_i32_gt_s"
 
+class _i32_lt_s(BinaryInstruction):
+    def __repr__(self): 
+        return "_i32_lt_s"
+    
+class _i32_clz(Instruction):
+    def __repr__(self): 
+        return "_i32_clz"
+    
 class _local_get(Instruction):
     # def __init__(self, value=None): 
     #     self.value = value
-    # def __repr__(self): 
+    # def __repr__(self):  
     #     return f"_local_get({self.value})"
     def __init__(self, op=None, operands=None):
         super().__init__(op, operands)
@@ -240,7 +248,7 @@ class _local_get(Instruction):
         return "_local_get"
 class _local_set(Instruction):
     def __init__(self, op=None, operands=None):
-        print("_local_set op : " + str(op) + " operands : " + str(operands))
+        # print("_local_set op : " + str(op) + " operands : " + str(operands))
         super().__init__(op, operands)
     def __repr__(self): 
         return "_local_set"
@@ -261,7 +269,10 @@ class _loop(ControlFlowInstruction):
 class _br(ControlFlowInstruction): pass
 class _br_if(ControlFlowInstruction): pass
 class _if(ControlFlowInstruction): pass
+    # def __repr__(self):
+    #     return super(Instruction, self).__repr__()
 class _else(ControlFlowInstruction): pass
+class _end(ControlFlowInstruction): pass
 
 class NEWLINE:
     def __init__(self):
@@ -293,7 +304,11 @@ WASM_INSTRUCTIONS = {
             'i32.div_s': 0,
             'i32.ge_u': 0,
             'i32.gt_s': 0,
+            'i32.lt_s': 0,
             
+    
+            'i32.clz': 0,
+                
             # Memory instructions
             'i32.load': (0, 2),
             'i32.store': (0, 2),
@@ -313,9 +328,21 @@ WASM_INSTRUCTIONS = {
             'loop': 'var',
             'br': 1,
             'br_if': 1,
-            'if': 'var'
+            'if': 'var',
+            'else': 'var',
+            'end': 'var'
         }
 
+COLORS = {
+        
+    'ERROR_COLOR': '\033[1;31m',   # Error messages - Bold Red
+    'WARNING_COLOR': '\033[1;33m', # Warning messages - Bold Yellow  
+    'SUCCESS_COLOR': '\033[1;32m', # Success messages - Bold Green
+    'INFO_COLOR': '\033[1;34m',    # Information messages - Bold Blue
+    'DEBUG_COLOR': '\033[36m', # Debug messages - Cyan (no bold)
+    'HIGHLIGHT_COLOR': '\033[7;37m',   # Highlighted text - Reverse video (white on default background)
+    'RESET_COLOR': '\033[0m',  # Reset all styles and colors
+}
 
 class Lexer:
     def __init__(self):
@@ -369,6 +396,7 @@ class Lexer:
                         self.pos += 1
                     self.pos += 1
                 if self.pos >= len(wat):
+                    print(self._lex_colorize("ERROR: ", 'ERROR_COLOR'), end="\n     ")  
                     print(f"Line {self.line_number}: Unclosed string literal")
                     return None
                 self.pos += 1
@@ -414,6 +442,7 @@ class Lexer:
                     self.tokens.append(ID(lexeme))
             
             else:
+                print(self._lex_colorize("ERROR: ", 'ERROR_COLOR'), end="\n     ")  
                 print(f"Line {self.line_number}: Illegal character '{c}'")
                 return None
             
@@ -422,3 +451,8 @@ class Lexer:
         self.tokens.append(EOF())
         
         return self.tokens
+
+    def _lex_colorize(self, text, color_key):
+        if self.lex_col_flag:
+            return f"{COLORS[color_key]}{text}{COLORS['RESET_COLOR']}"
+        return text
