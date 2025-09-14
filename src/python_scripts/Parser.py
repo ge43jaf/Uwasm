@@ -200,6 +200,11 @@ class Parser:
         # TODO: Parse params ... first, then instructions check
         current_section = None
         
+        export_flag = False
+        param_flag = False
+        result_flag = False
+        local_flag = False
+        
         # (...) (...) (...)
         while not isinstance(self.current_token, RPAREN):
             # if not isinstance(self.current_token, LPAREN):

@@ -138,15 +138,15 @@ parser.add_argument(
 )
 
 parser.add_argument(
-    '-v',
-    '--verbose',
+    '-d',
+    '--debug',
     action='store_true',
-    help="List all intermediate steps, can be used for debugging purposes"
+    help="List all intermediate verbose steps, can be used for debugging purposes"
 )
 
 parser.add_argument(
-    '-i',
-    '--interprete',
+    '-v',
+    '--velidate',
     action='store_true',
     help="Validate the programm based on the generated AST"
 )
@@ -211,10 +211,10 @@ if args.ast:
     verb_flag = False
     valid_flag = False
     
-if args.verbose:
+if args.debug:
     verb_flag = True
     
-if args.interprete:
+if args.velidate:
     valid_flag = True
 if args.color:
     color_flag = True

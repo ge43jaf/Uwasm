@@ -80,8 +80,8 @@ class ASTPrinter():
             self._print_instruction(node, prefix, is_last, show_types)
         elif isinstance(node, list):
             self._print_list(node, prefix, is_last, show_types)
-        elif hasattr(node, '__dict__'):
-            self._print_object(node, prefix, is_last, show_types)
+        # elif hasattr(node, '__dict__'):
+        #     self._print_object(node, prefix, is_last, show_types)
     
     def _print_memory(self, memory, prefix, is_last, show_types):
 
@@ -286,10 +286,10 @@ class EnhancedASTPrinter(ASTPrinter):
             self._print_export(node, prefix, is_last, show_types)
         elif isinstance(node, (Instruction, ControlFlowInstruction)):
             self._print_instruction(node, prefix, is_last, show_types)
-        elif isinstance(node, list):
+        elif isinstance(node, list):    # Body
             self._print_list(node, prefix, is_last, show_types)
-        elif hasattr(node, '__dict__'):
-            self._print_object(node, prefix, is_last, show_types)
+        # elif hasattr(node, '__dict__'):
+        #     self._print_object(node, prefix, is_last, show_types)
             
     def _print_function(self, func, prefix, is_last, show_types):
 
@@ -321,17 +321,19 @@ class EnhancedASTPrinter(ASTPrinter):
             body_prefix = prefix + self.indent_str
             self._print_node(func.body, body_prefix, True, show_types)
     
-    def _print_instruction(self, instr, prefix, is_last, show_types):
-
-        instr_name = getattr(instr, 'op', type(instr).__name__)
-        colored_instr = self._colorize(instr_name, 'Instruction')
+    # def _print_instruction(self, instr, prefix, is_last, show_types):
+    #     # print(instr)
+    #     instr_name = getattr(instr, 'op', type(instr).__name__)
+    #     # instr_name = type(instr).__name__
         
-        if hasattr(instr, 'operands') and instr.operands:
-            print(f"{prefix}{self.branch_str}{colored_instr}")
-            new_prefix = prefix + (self.indent_str if is_last else self.connector_str)
-            self._print_operands(instr.operands, new_prefix, show_types)
-        else:
-            print(f"{prefix}{self.last_branch_str if is_last else self.branch_str}{colored_instr}")
+    #     colored_instr = self._colorize(instr_name, 'Instruction')
+        
+    #     if hasattr(instr, 'operands') and instr.operands:
+    #         print(f"{prefix}{self.branch_str}{colored_instr}")
+    #         new_prefix = prefix + (self.indent_str if is_last else self.connector_str)
+    #         self._print_operands(instr.operands, new_prefix, show_types)
+    #     else:
+    #         print(f"{prefix}{self.last_branch_str if is_last else self.branch_str}{colored_instr}")
     
     def _print_operands(self, operands, prefix, show_types):
 
