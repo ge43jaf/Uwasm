@@ -32,7 +32,7 @@ from Lexer import (
     _end,
     
     _i32_load,
-    i32_store
+    _i32_store
 )
 
 from Parser import *
