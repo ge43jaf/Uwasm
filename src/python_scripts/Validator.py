@@ -1,7 +1,7 @@
 
 from Lexer import (
     LPAREN, RPAREN, ID, TYPE, CONST, STRING, EOF,
-    Module, Func, Param, Result, Local, Export, Memory, 
+    Module, Func, Param, Result, Local, Export, Memory, Global,
     Instruction, ControlFlowInstruction, BinaryInstruction,
     _i32_const, 
     _i32_add, 
@@ -10,6 +10,9 @@ from Lexer import (
     _i32_div_s,
     _i32_ge_u,
     _i32_gt_s,
+    _i32_lt_s,
+    
+    _i32_clz,
     
     _local_get, 
     _local_set,
@@ -25,7 +28,11 @@ from Lexer import (
     _br,
     _br_if,
     _if,
-    _else
+    _else,
+    _end,
+    
+    _i32_load,
+    i32_store
 )
 
 from Parser import *

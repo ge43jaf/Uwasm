@@ -57,7 +57,14 @@ class Export:
         self.exp_func = exp_func
     def __repr__(self): 
         return f"Export: ({self.value}, exp_func={self.exp_func.name})"
- 
+
+class Global:
+    def __init__(self, name=None, type=None):
+        self.name = name
+        self.type = type
+    def __repr__(self):
+        return f"Global(name={self.name}, type={self.type})"
+
 class Instruction:
     def __init__(self, op=None, operands=None):
         self.op = op
@@ -273,6 +280,9 @@ class _if(ControlFlowInstruction): pass
     #     return super(Instruction, self).__repr__()
 class _else(ControlFlowInstruction): pass
 class _end(ControlFlowInstruction): pass
+
+class _i32_load(Instruction): pass
+class _i32_store(Instruction): pass
 
 class NEWLINE:
     def __init__(self):

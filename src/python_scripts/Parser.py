@@ -1,7 +1,7 @@
 
 from Lexer import (
     LPAREN, RPAREN, ID, TYPE, CONST, STRING, EOF, NEWLINE, SPACE,
-    Module, Func, Param, Result, Local, Export, Memory, 
+    Module, Func, Param, Result, Local, Export, Memory, Global,
     Instruction, ControlFlowInstruction, BinaryInstruction,
     _i32_const, 
     _i32_add, 
@@ -29,7 +29,11 @@ from Lexer import (
     _br_if,
     _if,
     _else,
-    _end
+    _end,
+    
+    _i32_load,
+    i32_store
+    
 )
 
 COLORS = {
@@ -145,6 +149,16 @@ class Parser:
                     self.module.mems.append(mem)
                     # print(f"test_mem : {mem}")
 
+                # TODO : before or after function definition?
+                elif isinstance(self.current_token, Global):    # Can only be surrounded by (...)
+
+                    glob = self.parse_global()
+                    if glob is None :   #TODO: Error message
+                        return None
+                    self.module.mems.append(glob)
+                    # print(f"test_mem : {mem}")
+                    
+                
                 else:
                     print(self._par_colorize("ERROR: ", 'ERROR_COLOR'), end="\n     ")
                     print(f"Line {self.line_number}: Unexpected token in module: {self.current_token} after (")
@@ -704,8 +718,6 @@ class Parser:
             target = self.current_token.value
             operands.append(target)
             self.next_token()
-            
-            # Skip whitespace and newlines
             while isinstance(self.current_token, NEWLINE) or isinstance(self.current_token, SPACE):
                 if isinstance(self.current_token, NEWLINE):
                     self.line_number += 1
@@ -719,8 +731,6 @@ class Parser:
         while not isinstance(self.current_token, RPAREN):
             if isinstance(self.current_token, LPAREN):
                 self.next_token()
-                
-                # Skip whitespace and newlines
                 while isinstance(self.current_token, NEWLINE) or isinstance(self.current_token, SPACE):
                     if isinstance(self.current_token, NEWLINE):
                         self.line_number += 1
@@ -753,8 +763,6 @@ class Parser:
                     return None
                 
                 self.next_token()
-                
-                # Skip whitespace and newlines
                 while isinstance(self.current_token, NEWLINE) or isinstance(self.current_token, SPACE):
                     if isinstance(self.current_token, NEWLINE):
                         self.line_number += 1
@@ -1261,6 +1269,34 @@ class Parser:
             return None
         return mem
 
+    def parse_global(self):
+        glob = Global()
+        self.next_token()
+        while isinstance(self.current_token, NEWLINE) or isinstance(self.current_token, SPACE):
+            if isinstance(self.current_token, NEWLINE):
+                self.line_number += 1
+            self.next_token()
+        if isinstance(self.current_token, ID):
+            glob.name = self.current_token.value
+            self.next_token()
+            while isinstance(self.current_token, NEWLINE) or isinstance(self.current_token, SPACE):
+                if isinstance(self.current_token, NEWLINE):
+                    self.line_number += 1
+                self.next_token()
+        if isinstance(self.current_token, TYPE):
+            glob.type = self.current_token.value
+            self.next_token()
+            while isinstance(self.current_token, NEWLINE) or isinstance(self.current_token, SPACE):
+                if isinstance(self.current_token, NEWLINE):
+                    self.line_number += 1
+                self.next_token()
+        else:
+            print(self._par_colorize("ERROR: ", 'ERROR_COLOR'), end="\n     ")
+            print(f"Line {self.line_number}: Expected local type")
+            return None
+        
+        return glob
+    
     def _par_colorize(self, text, color_key):
         if self.par_col_flag:
             return f"{COLORS[color_key]}{text}{COLORS['RESET_COLOR']}"
