@@ -259,10 +259,10 @@ class Parser:
                         print(f"Line {self.line_number}: Error: Params must come before results and locals")
                         return None
                     current_section = 'param'
-                    param = self.parse_param()
-                    if param is None:
+                    params_returned = self.parse_param()
+                    if params_returned is None:
                         return None
-                    func.params.append(param)
+                    func.params.extend(params_returned)
                     
                 elif isinstance(self.current_token, Result):
                     if current_section and current_section not in ('param', 'result'):
@@ -405,6 +405,7 @@ class Parser:
     
     def parse_param(self):
         param = Param()
+        params = []
         self.next_token()
         while isinstance(self.current_token, NEWLINE) or isinstance(self.current_token, SPACE):
             if isinstance(self.current_token, NEWLINE):
@@ -417,19 +418,52 @@ class Parser:
                 if isinstance(self.current_token, NEWLINE):
                     self.line_number += 1
                 self.next_token()
+                
+            if isinstance(self.current_token, TYPE):
+                param.type = self.current_token.value
+                params.append(param)
+                self.next_token()
+                while isinstance(self.current_token, NEWLINE) or isinstance(self.current_token, SPACE):
+                    if isinstance(self.current_token, NEWLINE):
+                        self.line_number += 1
+                    self.next_token()
+            else:
+                print(self._par_colorize("ERROR: ", 'ERROR_COLOR'), end="\n     ")
+                print(f"Line {self.line_number}: Expected parameter type")
+                return None
+            
         if isinstance(self.current_token, TYPE):
             param.type = self.current_token.value
+            params.append(param)
             self.next_token()
             while isinstance(self.current_token, NEWLINE) or isinstance(self.current_token, SPACE):
                 if isinstance(self.current_token, NEWLINE):
                     self.line_number += 1
                 self.next_token()
+            while not isinstance(self.current_token, RPAREN):
+                while isinstance(self.current_token, NEWLINE) or isinstance(self.current_token, SPACE):
+                    if isinstance(self.current_token, NEWLINE):
+                        self.line_number += 1
+                    self.next_token()
+                if isinstance(self.current_token, TYPE):
+                    param_temp = Param()
+                    param_temp.type = self.current_token.value
+                    params.append(param_temp)
+                    self.next_token()
+                    while isinstance(self.current_token, NEWLINE) or isinstance(self.current_token, SPACE):
+                        if isinstance(self.current_token, NEWLINE):
+                            self.line_number += 1
+                        self.next_token()
+                else:
+                    print(self._par_colorize("ERROR: ", 'ERROR_COLOR'), end="\n     ")
+                    print(f"Line {self.line_number}: Expected parameter type")
+                    return None
         else:
             print(self._par_colorize("ERROR: ", 'ERROR_COLOR'), end="\n     ")
             print(f"Line {self.line_number}: Expected parameter type")
             return None
         
-        return param
+        return params
     
     def parse_local(self):
         local = Local()

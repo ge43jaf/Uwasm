@@ -146,7 +146,7 @@ parser.add_argument(
 
 parser.add_argument(
     '-v',
-    '--velidate',
+    '--validate',
     action='store_true',
     help="Validate the programm based on the generated AST"
 )
@@ -214,7 +214,7 @@ if args.ast:
 if args.debug:
     verb_flag = True
     
-if args.velidate:
+if args.validate:
     valid_flag = True
 if args.color:
     color_flag = True
@@ -284,10 +284,6 @@ ast = parser.parse(tokens)
 astPrinter = ASTPrinter()
 enhancedAstPrinter = EnhancedASTPrinter()
 
-if args.branch:
-    astPrinter.print_ast(ast)
-elif args.color:
-    enhancedAstPrinter.print_ast(ast)
 
 if ast is None:
     print("Parsing failed")
@@ -296,7 +292,12 @@ if verb_flag:
     print("\nAST: Typeof AST:")
     print(type(ast))
 
-pprint.pprint(ast)
+if args.branch:
+    astPrinter.print_ast(ast)
+elif args.color:
+    enhancedAstPrinter.print_ast(ast)
+else:
+    pprint.pprint(ast)
 
 # print(ast.funcs)
 # print(ast.exports)

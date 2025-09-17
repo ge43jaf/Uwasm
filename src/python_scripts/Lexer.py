@@ -300,7 +300,7 @@ class SPACE:
 # Keyword and Instruction Sets
 KEYWORDS = {
     'module', 'func', 'param', 'result', 'local',
-    'export', 'memory', 'data', 'type'
+    'export', 'memory', 'data', 'type', 'global'
 }
 
 WASM_INSTRUCTIONS = {
