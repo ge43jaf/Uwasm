@@ -59,11 +59,12 @@ class Export:
         return f"Export: ({self.value}, exp_func={self.exp_func.name})"
 
 class Global:
-    def __init__(self, name=None, type=None):
+    def __init__(self, name=None, type=None, value=None):
         self.name = name
         self.type = type
+        self.value = value
     def __repr__(self):
-        return f"Global(name={self.name}, type={self.type})"
+        return f"Global(name={self.name}, type={self.type}, value={self.value})"
 
 class Instruction:
     def __init__(self, op=None, operands=None):
