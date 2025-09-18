@@ -2,8 +2,9 @@
 import re
 
 class Module:
-    def __init__(self, mems=None, funcs=None, exports=None):
+    def __init__(self, mems=None, globs=None, funcs=None, exports=None):
         self.mems = mems if mems else []
+        self.globs = globs if globs else []
         self.funcs = funcs if funcs else []
         self.exports = exports if exports else []
 
@@ -13,10 +14,11 @@ class Module:
         #       or according to the definition order in wat code
 
         mems_str = "\n".join(f"  {repr(m)}" for m in self.mems)
+        globs_str = "\n".join(f"  {repr(g)}" for g in self.globs)
         funcs_str = "\n".join(f"  {repr(f)}" for f in self.funcs)
         exports_str = "\n".join(f"  {repr(e)}" for e in self.exports)
 
-        return f"Module:\n{mems_str}\n{funcs_str}\n{exports_str}"
+        return f"Module:\n{mems_str}\n{globs_str}\n{funcs_str}\n{exports_str}"
         
 class Memory:
     def __init__(self, name=None, value=None):

@@ -51,7 +51,11 @@ class ASTPrinter():
         
         # Add memories
         for i, mem in enumerate(module.mems):
-            children.append(("Memory", mem, i == len(module.mems) - 1 and not module.funcs and not module.exports))
+            children.append(("Memory", mem, i == len(module.mems) - 1 and not module.funcs and not module.exports and not module.globs))
+        
+        # Add globals
+        for i, glob in enumerate(module.globs):
+            children.append(("Global", glob, i == len(module.globs) - 1 and not module.funcs and not module.exports))
         
         # Add functions
         for i, func in enumerate(module.funcs):
@@ -71,6 +75,7 @@ class ASTPrinter():
     def _print_node(self, node, prefix, is_last, show_types):
         """Recursively print AST nodes"""
         if isinstance(node, Memory):
+            # pass
             self._print_memory(node, prefix, is_last, show_types)
         elif isinstance(node, Func):
             self._print_function(node, prefix, is_last, show_types)
@@ -84,7 +89,7 @@ class ASTPrinter():
         #     self._print_object(node, prefix, is_last, show_types)
     
     def _print_memory(self, memory, prefix, is_last, show_types):
-
+        # pass
         if memory.value:
             new_prefix = prefix + (self.indent_str if is_last else self.connector_str)
             print(f"{prefix}{self.last_branch_str}Size: {memory.value}")
@@ -212,6 +217,7 @@ class EnhancedASTPrinter(ASTPrinter):
             'Module': '\033[1;34m',          # Bold blue
             
             'Memory': '\033[1;35m',          # Bold magenta
+            'Global': '\033[0;33m',          # Yellow
             'Function': '\033[1;32m',        # Bold green
                 'Param': '\033[0;32m',       # Green
                 'Local': '\033[0;33m',       # Yellow
@@ -253,8 +259,13 @@ class EnhancedASTPrinter(ASTPrinter):
         children = []
         
         # Add memories
+        # print(module.mems)
         for i, mem in enumerate(module.mems):
-            children.append(("Memory", mem, i == len(module.mems) - 1 and not module.funcs and not module.exports))
+            children.append(("Memory", mem, i == len(module.mems) - 1 and not module.funcs and not module.exports and not module.globs))
+        
+        # Add globals
+        for i, glob in enumerate(module.globs):
+            children.append(("Global", glob, i == len(module.globs) - 1 and not module.funcs and not module.exports))
         
         # Add functions
         for i, func in enumerate(module.funcs):
@@ -270,10 +281,21 @@ class EnhancedASTPrinter(ASTPrinter):
             
             # print(f"{prefix}{branch}{label}: {getattr(child, 'name', '')}")
             # print("label : " + label)
-            name_display = func.name if func.name else "[anonymous]"
-            print(f"{prefix}{self.last_branch_str if is_last else self.branch_str}"
-                  f"{self._colorize(label, label)}: {self._colorize(name_display, label)}")
-        
+            
+            if label in ("Function", "Memory", "Global"):
+                name_display = child.name if child.name else "[anonymous]"
+                print(f"{prefix}{self.last_branch_str if is_last else self.branch_str}"
+                      f"{self._colorize(label, label)}: {self._colorize(name_display, label)}")
+            # elif label == "Memory":
+            #     name_display = child.name if child.name else "[anonymous]"
+            #     print(f"{prefix}{self.last_branch_str if is_last else self.branch_str}"
+            #           f"{self._colorize(label, label)}: {self._colorize(name_display, label)}")
+            else:   # Export
+                # pass
+                name_display = child.value if child.value else "[anonymous]"
+                print(f"{prefix}{self.last_branch_str if is_last else self.branch_str}"
+                      f"{self._colorize(label, label)}: {self._colorize(name_display, label)}")
+
             self._print_node(child, new_prefix, is_last, show_types)
             
     def _print_node(self, node, prefix, is_last, show_types):

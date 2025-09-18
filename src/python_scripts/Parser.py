@@ -129,6 +129,8 @@ class Parser:
                 elif isinstance(self.current_token, Export):    # Can only be surrounded by (...)
                     export = self.parse_export()
                     if export is None :
+                        print(self._par_colorize("ERROR: ", 'ERROR_COLOR'), end="\n     ")
+                        print(f"Line {self.line_number}: None returned after parsing export, current token : '{self.current_token}'")
                         return None
 
                     self.module.exports.append(export)
@@ -138,6 +140,8 @@ class Parser:
 
                     mem = self.parse_memory()
                     if mem is None :
+                        print(self._par_colorize("ERROR: ", 'ERROR_COLOR'), end="\n     ")
+                        print(f"Line {self.line_number}: None returned after parsing memory, current token : '{self.current_token}'")
                         return None
                     self.module.mems.append(mem)
                     # print(f"test_mem : {mem}")
@@ -147,8 +151,10 @@ class Parser:
 
                     glob = self.parse_global()
                     if glob is None :   #TODO: Error message
+                        print(self._par_colorize("ERROR: ", 'ERROR_COLOR'), end="\n     ")
+                        print(f"Line {self.line_number}: None returned after parsing global, current token : '{self.current_token}'")
                         return None
-                    self.module.mems.append(glob)
+                    self.module.globs.append(glob)
                     # print(f"test_mem : {mem}")
                     
                 
