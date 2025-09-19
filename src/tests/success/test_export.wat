@@ -1,7 +1,7 @@
 (module
   (export "foo" (func $foo))
-  (func $foo (param $a i32)
-    
+  (func $foo (param $a i32) (result i32)
+    local.get $a
   )
   
 )

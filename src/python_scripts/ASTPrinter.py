@@ -10,6 +10,7 @@ from Lexer import (
     _i32_div_s,
     _i32_ge_u,
     _i32_gt_s,
+    _i32_lt_s,
     
     _local_get, 
     _local_set,
@@ -138,6 +139,7 @@ class ASTPrinter():
                 for i, (key, value) in enumerate(instr.operands.items()):
                     if value:  # Only print non-empty operands
                         branch = self.last_branch_str if i == len(instr.operands) - 1 else self.branch_str
+                        print(prefix)
                         print(f"{prefix}{branch}{key.capitalize()}")
                         self._print_node(value, new_prefix, i == len(instr.operands) - 1, show_types)
             else:
@@ -162,6 +164,8 @@ class ASTPrinter():
                 # Simple string items (like result types)
                 print(f"{prefix}{branch}{item}")
             else:
+                print("type of item in body: " + str(type(item).__name__))
+                print("item in body: " + str(item))
                 # Complex items
                 print(f"{prefix}{branch}{type(item).__name__}")
                 self._print_node(item, new_prefix, i == len(items) - 1, show_types)
@@ -343,19 +347,40 @@ class EnhancedASTPrinter(ASTPrinter):
             body_prefix = prefix + self.indent_str
             self._print_node(func.body, body_prefix, True, show_types)
     
-    # def _print_instruction(self, instr, prefix, is_last, show_types):
-    #     # print(instr)
-    #     instr_name = getattr(instr, 'op', type(instr).__name__)
-    #     # instr_name = type(instr).__name__
+    def _print_instruction(self, instr, prefix, is_last, show_types):
+        # print("op : " + str(instr.op) + " operands : " + str(instr.operands)) #TODO: Usage for Debug
+        instr_name = getattr(instr, 'op', type(instr).__name__)
+        # instr_name = type(instr).__name__
+        # print(instr_name) #TODO: Usage for Debug
+        colored_instr = self._colorize(instr_name, 'Instruction')
         
-    #     colored_instr = self._colorize(instr_name, 'Instruction')
+        if hasattr(instr, 'operands') and instr.operands:
+            print(f"{prefix}{self.branch_str}{colored_instr}")
+            new_prefix = prefix + (self.indent_str if is_last else self.connector_str)
+            self._print_operands(instr.operands, new_prefix, show_types)
+        else:
+            print(f"{prefix}{self.last_branch_str if is_last else self.branch_str}{colored_instr}")
+    
+    def _print_list(self, items, prefix, is_last, show_types):
+
+        new_prefix = prefix + (self.indent_str if is_last else self.connector_str)
         
-    #     if hasattr(instr, 'operands') and instr.operands:
-    #         print(f"{prefix}{self.branch_str}{colored_instr}")
-    #         new_prefix = prefix + (self.indent_str if is_last else self.connector_str)
-    #         self._print_operands(instr.operands, new_prefix, show_types)
-    #     else:
-    #         print(f"{prefix}{self.last_branch_str if is_last else self.branch_str}{colored_instr}")
+        for i, item in enumerate(items):
+            branch = self.last_branch_str if i == len(items) - 1 else self.branch_str
+            
+            if isinstance(item, (Param, Local)):
+                # Special handling for parameters and locals
+                item_str = f"{item.name}: {item.type}" if hasattr(item, 'name') and hasattr(item, 'type') else str(item)
+                print(f"{prefix}{branch}{item_str}")
+            elif isinstance(item, str):
+                # Simple string items (like result types)
+                print(f"{prefix}{branch}{item}")
+            else:
+                # print("type of item in body: " + str(type(item).__name__))    #TODO: Usage for Debug
+                # print("item in body: " + str(item))
+                # Complex items
+                print(f"{prefix}{branch}{type(item).__name__}")
+                self._print_node(item, new_prefix, i == len(items) - 1, show_types)
     
     def _print_operands(self, operands, prefix, show_types):
 

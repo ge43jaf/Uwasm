@@ -41,7 +41,7 @@ COLORS = {
     'ERROR_COLOR': '\033[1;31m',   # Error messages - Bold Red
     'WARNING_COLOR': '\033[1;33m', # Warning messages - Bold Yellow  
     'SUCCESS_COLOR': '\033[1;32m', # Success messages - Bold Green
-    'INFO_COLOR': '\033[1;34m',    # Information messages - Bold Blue
+    'PARSER_DEBUG_COLOR': '\033[1;34m',    # Parser debug messages - Bold Blue
     'DEBUG_COLOR': '\033[36m', # Debug messages - Cyan (no bold)
     'HIGHLIGHT_COLOR': '\033[7;37m',   # Highlighted text - Reverse video (white on default background)
     'RESET_COLOR': '\033[0m',  # Reset all styles and colors
@@ -124,6 +124,9 @@ class Parser:
                 if isinstance(self.current_token, Func):        # Can only be surrounded by (...)
                     func = self.parse_func()
                     if func is None:
+                        print(self._par_colorize("ERROR: ", 'ERROR_COLOR'), end="\n     ")
+                        print(f"Line {self.line_number}: None returned after parsing function, current token : '{self.current_token}'")
+                        
                         return None
                     self.module.funcs.append(func)
                 elif isinstance(self.current_token, Export):    # Can only be surrounded by (...)
@@ -238,6 +241,9 @@ class Parser:
                     current_section = 'param'
                     params_returned = self.parse_param()
                     if params_returned is None:
+                        print(self._par_colorize("ERROR: ", 'ERROR_COLOR'), end="\n     ")
+                        print(f"Line {self.line_number}: None returned after parsing parameters, current token : '{self.current_token}'")
+                        
                         return None
                     func.params.extend(params_returned)
                     
@@ -249,6 +255,9 @@ class Parser:
                     current_section = 'result'
                     result = self.parse_result()
                     if result is None:
+                        print(self._par_colorize("ERROR: ", 'ERROR_COLOR'), end="\n     ")
+                        print(f"Line {self.line_number}: None returned after parsing result, current token : '{self.current_token}'")
+                        
                         return None
                     func.results.append(result)
                     
@@ -256,11 +265,16 @@ class Parser:
                     current_section = 'local'
                     local = self.parse_local()
                     if local is None:
+                        print(self._par_colorize("ERROR: ", 'ERROR_COLOR'), end="\n     ")
+                        print(f"Line {self.line_number}: None returned after parsing local, current token : '{self.current_token}'")
+                        
                         return None
                     func.locals.append(local)
                     
                 elif isinstance(self.current_token, ControlFlowInstruction):
                     # TODO: Deletion
+                    print(self._par_colorize(f"Line {self.line_number}: ", 'PARSER_DEBUG_COLOR'), end="     ")
+                    
                     print('ControlFlowInstruction :  ' + str(type(self.current_token)))
                 
                     controlFlowInstr = self.parse_control_flow()
@@ -274,9 +288,14 @@ class Parser:
                     
                 elif isinstance(self.current_token, Instruction):
                     if self.par_verb_flag:
+                        print(self._par_colorize(f"Line {self.line_number}: ", 'DEBUG_COLOR'), end="     ")
+                        
                         print('func (...) (...) (... ' + str(type(self.current_token))) #TODO: MOdification
                     instr = self.parse_instruction()
                     if instr is None:
+                        print(self._par_colorize("ERROR: ", 'ERROR_COLOR'), end="\n     ")
+                        print(f"Line {self.line_number}: None returned after parsing instruction, current token : '{self.current_token}'")
+                        
                         return None
                     func.body.append(instr)
                     
@@ -300,7 +319,9 @@ class Parser:
                     
             elif isinstance(self.current_token, ControlFlowInstruction):
                 #TODO: MOdification/Deletion
-                print('ControlFlowInstruction :  ' + str(type(self.current_token)))
+                print(self._par_colorize(f"Line {self.line_number}: ", 'DEBUG_COLOR'), end="     ")
+                
+                print('ControlFlowInstruction without (...):  ' + str(type(self.current_token)))
 
                 controlFlowInstr = self.parse_control_flow()
                 if controlFlowInstr is None:
@@ -348,9 +369,14 @@ class Parser:
                 # print(f'Line {self.line_number}: Currrent Instruction without (...) surrounded' + str(type(self.current_token)))
                 
                 if self.par_verb_flag:
+                    print(self._par_colorize(f"Line {self.line_number}: ", 'DEBUG_COLOR'), end="     ")
+                    
                     print('func (...) (...) (... ' + str(type(self.current_token))) #TODO: MOdification
                 instr = self.parse_instruction()
                 if instr is None:
+                    print(self._par_colorize("ERROR: ", 'ERROR_COLOR'), end="\n     ")
+                    print(f"Line {self.line_number}: None returned after parsing instruction, current token : '{self.current_token}'")
+                        
                     return None
                 func.body.append(instr)
                     
@@ -459,6 +485,10 @@ class Parser:
             return None
     
     def parse_control_flow(self):
+        
+        print(self._par_colorize(f"Line {self.line_number}: ", 'PARSER_DEBUG_COLOR'), end="     ")
+                
+        print('ControlFlowInstruction inside parse_control_flow:  ' + str(type(self.current_token)))
 
         if isinstance(self.current_token, _nop):
             self.next_token()
@@ -494,13 +524,14 @@ class Parser:
             self.next_token()
             self.parse_newline_and_space()
             
+            operand = self.current_token
             if not isinstance(self.current_token, (CONST, ID)):
                 print(self._par_colorize("ERROR: ", 'ERROR_COLOR'), end="\n     ")
                 print(f"Line {self.line_number}: Unexpected token '{self.current_token}', expected CONST or ID after call instruction")
                 return None
             self.next_token()
             self.parse_newline_and_space()
-            return ControlFlowInstruction(_call)
+            return ControlFlowInstruction(_call, {operand})
         
         elif isinstance(self.current_token, _return):
             # No operands needed, just consume any values on stack
@@ -511,14 +542,17 @@ class Parser:
 
         else:
             op = self.current_token
+            
+            print(self._par_colorize("WARNING: ", 'WARNING_COLOR'), end="\n     ")
+            print(f"Line {self.line_number}: Is ControlFlowInstruction {op} but not found!")
             self.next_token()
             self.parse_newline_and_space()
             
-            print(self._par_colorize("WARNING: ", 'WARNING_COLOR'), end="\n     ")
-            print(f"Line {self.line_number}: Is ControlFlowInstruction {self.current_token} but not found!")
             # pass
             return ControlFlowInstruction(op)
     
+    # def parse_call(self):
+        
     def parse_block(self):
 
         operands = []
@@ -531,11 +565,17 @@ class Parser:
                 if isinstance(self.current_token, ControlFlowInstruction):
                     nested_instr = self.parse_control_flow()
                     if nested_instr is None:
+                        print(self._par_colorize("ERROR: ", 'ERROR_COLOR'), end="\n     ")
+                        print(f"Line {self.line_number}: None returned after parsing control flow, current token : '{self.current_token}'")
+                        
                         return None
                     operands.append(nested_instr)
                 elif isinstance(self.current_token, Instruction):
                     nested_instr = self.parse_instruction()
                     if nested_instr is None:
+                        print(self._par_colorize("ERROR: ", 'ERROR_COLOR'), end="\n     ")
+                        print(f"Line {self.line_number}: None returned after parsing instruction, current token : '{self.current_token}'")
+                        
                         return None
                     operands.append(nested_instr)
                 else:
@@ -559,11 +599,17 @@ class Parser:
                 elif isinstance(self.current_token, ControlFlowInstruction):
                     nested_instr = self.parse_control_flow()
                     if nested_instr is None:
+                        print(self._par_colorize("ERROR: ", 'ERROR_COLOR'), end="\n     ")
+                        print(f"Line {self.line_number}: None returned after parsing control flow, current token : '{self.current_token}'")
+                        
                         return None
                     operands.append(nested_instr)
                 elif isinstance(self.current_token, Instruction):
                     nested_instr = self.parse_instruction()
                     if nested_instr is None:
+                        print(self._par_colorize("ERROR: ", 'ERROR_COLOR'), end="\n     ")
+                        print(f"Line {self.line_number}: None returned after parsing instruction, current token : '{self.current_token}'")
+                        
                         return None
                     operands.append(nested_instr)
                 else:   #TODO
@@ -585,11 +631,17 @@ class Parser:
                 if isinstance(self.current_token, ControlFlowInstruction):
                     nested_instr = self.parse_control_flow()
                     if nested_instr is None:
+                        print(self._par_colorize("ERROR: ", 'ERROR_COLOR'), end="\n     ")
+                        print(f"Line {self.line_number}: None returned after parsing control flow, current token : '{self.current_token}'")
+                        
                         return None
                     operands.append(nested_instr)
                 elif isinstance(self.current_token, Instruction):
                     nested_instr = self.parse_instruction()
                     if nested_instr is None:
+                        print(self._par_colorize("ERROR: ", 'ERROR_COLOR'), end="\n     ")
+                        print(f"Line {self.line_number}: None returned after parsing instruction, current token : '{self.current_token}'")
+                        
                         return None
                     operands.append(nested_instr)
                 else:   #TODO
@@ -604,6 +656,8 @@ class Parser:
                 
             else:   #TODO
                 if self.par_verb_flag:
+                    print(self._par_colorize(f"Line {self.line_number}: ", 'DEBUG_COLOR'), end="     ")
+                    
                     print(f'else in parse_loop, current_token : {self.current_token}')
 
                 # Handle immediate values
@@ -611,6 +665,11 @@ class Parser:
                     print("Inside parse loop: " + str(type(self.current_token)))
                 # if self.current_token == "end":
                 if isinstance(self.current_token, _end):
+                    print(self._par_colorize(f"Line {self.line_number}: ", 'DEBUG_COLOR'), end="     ")
+                    print("_end for _loop")
+                    self.next_token()   # To avoid the warning "Is ControlFlowInstruction ... but not found!"
+                    self.parse_newline_and_space()
+                    
                     return ControlFlowInstruction(_if, operands)
                 
                 if isinstance(self.current_token, (CONST, ID)):
@@ -620,13 +679,19 @@ class Parser:
                     
                 elif isinstance(self.current_token, ControlFlowInstruction):
                     nested_instr = self.parse_control_flow()
-                    print(f'Line {self.line_number}: nested_instr in parse_loop : {nested_instr}')   #TODO
+                    print(f'Line {self.line_number}: nested control flow in parse_loop : {nested_instr}')   #TODO
                     if nested_instr is None:
+                        print(self._par_colorize("ERROR: ", 'ERROR_COLOR'), end="\n     ")
+                        print(f"Line {self.line_number}: None returned after parsing control flow, current token : '{self.current_token}'")
+                        
                         return None
                     operands.append(nested_instr)
                 elif isinstance(self.current_token, Instruction):
                     nested_instr = self.parse_instruction()
                     if nested_instr is None:
+                        print(self._par_colorize("ERROR: ", 'ERROR_COLOR'), end="\n     ")
+                        print(f"Line {self.line_number}: None returned after parsing instruction, current token : '{self.current_token}'")
+                        
                         return None
                     operands.append(nested_instr)
                 else:   #TODO
@@ -675,11 +740,17 @@ class Parser:
                 if isinstance(self.current_token, ControlFlowInstruction):
                     nested_instr = self.parse_control_flow()
                     if nested_instr is None:
+                        print(self._par_colorize("ERROR: ", 'ERROR_COLOR'), end="\n     ")
+                        print(f"Line {self.line_number}: None returned after parsing control flow, current token : '{self.current_token}'")
+                        
                         return None
                     operands.append(nested_instr)
                 elif isinstance(self.current_token, Instruction):
                     nested_instr = self.parse_instruction()
                     if nested_instr is None:
+                        print(self._par_colorize("ERROR: ", 'ERROR_COLOR'), end="\n     ")
+                        print(f"Line {self.line_number}: None returned after parsing instruction, current token : '{self.current_token}'")
+                        
                         return None
                     operands.append(nested_instr)
                 else:
@@ -710,11 +781,17 @@ class Parser:
                 elif isinstance(self.current_token, ControlFlowInstruction):
                     nested_instr = self.parse_control_flow()
                     if nested_instr is None:
+                        print(self._par_colorize("ERROR: ", 'ERROR_COLOR'), end="\n     ")
+                        print(f"Line {self.line_number}: None returned after parsing control flow, current token : '{self.current_token}'")
+                        
                         return None
                     operands.append(nested_instr)
                 elif isinstance(self.current_token, Instruction):
                     nested_instr = self.parse_instruction()
                     if nested_instr is None:
+                        print(self._par_colorize("ERROR: ", 'ERROR_COLOR'), end="\n     ")
+                        print(f"Line {self.line_number}: None returned after parsing instruction, current token : '{self.current_token}'")
+                        
                         return None
                     operands.append(nested_instr)
                 else:
@@ -727,7 +804,7 @@ class Parser:
         
         operands = []
         # Parse operands/instructions until closing parenthesis
-        while not isinstance(self.current_token, RPAREN):
+        while not isinstance(self.current_token, RPAREN): # and not isinstance(self.current_token, _end):
             if isinstance(self.current_token, LPAREN):
                 self.next_token()
                 self.parse_newline_and_space()
@@ -735,11 +812,17 @@ class Parser:
                 if isinstance(self.current_token, ControlFlowInstruction):
                     nested_instr = self.parse_control_flow()
                     if nested_instr is None:
+                        print(self._par_colorize("ERROR: ", 'ERROR_COLOR'), end="\n     ")
+                        print(f"Line {self.line_number}: None returned after parsing control flow, current token : '{self.current_token}'")
+                        
                         return None
                     operands.append(nested_instr)
                 elif isinstance(self.current_token, Instruction):
                     nested_instr = self.parse_instruction()
                     if nested_instr is None:
+                        print(self._par_colorize("ERROR: ", 'ERROR_COLOR'), end="\n     ")
+                        print(f"Line {self.line_number}: None returned after parsing instruction, current token : '{self.current_token}'")
+                        
                         return None
                     operands.append(nested_instr)
                 else:   #TODO
@@ -756,9 +839,16 @@ class Parser:
                 # Handle immediate values
                 
                 if self.par_verb_flag:
+                    print(self._par_colorize(f"Line {self.line_number}: ", 'DEBUG_COLOR'), end="     ")
+                    
                     print("Inside parse if: " + str(type(self.current_token)))
                 # if self.current_token == "end":
                 if isinstance(self.current_token, _end):
+                    print(self._par_colorize(f"Line {self.line_number}: ", 'DEBUG_COLOR'), end="     ")
+                    print("_end for _if")
+                    self.next_token()   # To avoid the warning "Is ControlFlowInstruction ... but not found!"
+                    self.parse_newline_and_space()
+                    
                     return ControlFlowInstruction(_if, operands)
                 
                 if isinstance(self.current_token, (CONST, ID)):
@@ -769,11 +859,17 @@ class Parser:
                 elif isinstance(self.current_token, ControlFlowInstruction):
                     nested_instr = self.parse_control_flow()
                     if nested_instr is None:
+                        print(self._par_colorize("ERROR: ", 'ERROR_COLOR'), end="\n     ")
+                        print(f"Line {self.line_number}: None returned after parsing control flow, current token : '{self.current_token}'")
+                        
                         return None
                     operands.append(nested_instr)
                 elif isinstance(self.current_token, Instruction):
                     nested_instr = self.parse_instruction()
                     if nested_instr is None:
+                        print(self._par_colorize("ERROR: ", 'ERROR_COLOR'), end="\n     ")
+                        print(f"Line {self.line_number}: None returned after parsing instruction, current token : '{self.current_token}'")
+                        
                         return None
                     operands.append(nested_instr)
                 else:   #TODO
@@ -798,6 +894,9 @@ class Parser:
                         
                         nested_instr = self.parse_instruction()
                         if nested_instr is None:
+                            print(self._par_colorize("ERROR: ", 'ERROR_COLOR'), end="\n     ")
+                            print(f"Line {self.line_number}: None returned after parsing instruction, current token : '{self.current_token}'")
+                        
                             return None
                         else_operands.append(nested_instr)
                             
@@ -847,11 +946,17 @@ class Parser:
                     if isinstance(self.current_token, ControlFlowInstruction):
                         nested_instr = self.parse_control_flow()
                         if nested_instr is None:
+                            print(self._par_colorize("ERROR: ", 'ERROR_COLOR'), end="\n     ")
+                            print(f"Line {self.line_number}: None returned after parsing control flow, current token : '{self.current_token}'")
+                        
                             return None
                         operands.append(nested_instr)
                     elif isinstance(self.current_token, Instruction):
                         nested_instr = self.parse_instruction()
                         if nested_instr is None:
+                            print(self._par_colorize("ERROR: ", 'ERROR_COLOR'), end="\n     ")
+                            print(f"Line {self.line_number}: None returned after parsing instruction, current token : '{self.current_token}'")
+                        
                             return None
                         operands.append(nested_instr)
                     else:   #TODO
@@ -892,6 +997,9 @@ class Parser:
                             
                             nested_instr = self.parse_instruction()
                             if nested_instr is None:
+                                print(self._par_colorize("ERROR: ", 'ERROR_COLOR'), end="\n     ")
+                                print(f"Line {self.line_number}: None returned after parsing instruction, current token : '{self.current_token}'")
+                        
                                 return None
                             else_operands.append(nested_instr)
                             
@@ -940,6 +1048,9 @@ class Parser:
                     
                     nested_instr = self.parse_instruction()
                     if nested_instr is None:
+                        print(self._par_colorize("ERROR: ", 'ERROR_COLOR'), end="\n     ")
+                        print(f"Line {self.line_number}: None returned after parsing instruction, current token : '{self.current_token}'")
+                        
                         return None
                     operands.append(nested_instr)
                     
@@ -965,7 +1076,7 @@ class Parser:
         #         'else': []  # Will be filled if there's an else branch
         #     })
         else:
-            return ControlFLowInstruction(op, operands) #TODO
+            return ControlFlowInstruction(op, operands) #TODO
 
 
 
@@ -989,15 +1100,19 @@ class Parser:
         #                                     _call, 
         #                                     _return)):
         op_class = self.current_token
-        op = type(self.current_token).__name__[1:].replace('_', '.')
+        op = type(self.current_token).__name__[1:].replace('_', '.', 1)    # 1 for avoiding i32.lt.s
         operands = []
         
+        print(self._par_colorize(f"Line {self.line_number}: ", 'PARSER_DEBUG_COLOR'), end="     ")
+                
+        print('Instruction inside parse_instruction:  ' + str(type(self.current_token)))
+
         if isinstance(self.current_token, BinaryInstruction):
             self.next_token()
             self.parse_newline_and_space()
             
             return BinaryInstruction(op, operands)
-        
+
         self.next_token()
         self.parse_newline_and_space()
         
@@ -1011,6 +1126,9 @@ class Parser:
                 
                 nested_instr = self.parse_instruction()
                 if nested_instr is None:
+                    print(self._par_colorize("ERROR: ", 'ERROR_COLOR'), end="\n     ")
+                    print(f"Line {self.line_number}: None returned after parsing instruction, current token : '{self.current_token}'")
+                        
                     return None
                 operands.append(nested_instr)
                 if not isinstance(self.current_token, RPAREN):
@@ -1026,8 +1144,11 @@ class Parser:
             self.next_token()
             self.parse_newline_and_space()
             
-        if self.par_verb_flag:
-            print(f'In parse_instruction : {Instruction(op, operands)}')    #TODO
+        # if self.par_verb_flag:
+        print(self._par_colorize(f"Line {self.line_number}: ", 'DEBUG_COLOR'), end="     ")
+            
+        print(f'In parse_instruction : {Instruction(op, operands)}')    #TODO
+        op_class.operands = operands
         return op_class     # Instruction(op, operands)
         # else:
         #     print(f"Unknown instruction: {self.current_token}")

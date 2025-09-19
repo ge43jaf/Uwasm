@@ -111,7 +111,8 @@ class Validator:
         
         for func in self.module.funcs:
             for instr in func.body:
-                print(instr)
+                print("instr type : " + str(type(instr).__name__))
+                # print(instr)
                 # if isinstance(instr, _i32_const):
                 #     stack.append("i32")
                 

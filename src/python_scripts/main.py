@@ -1,6 +1,7 @@
 from Lexer import Lexer
 from Parser import Parser
 from Validator import Validator
+from Interpreter import interpret_ast
 from ASTPrinter import ASTPrinter, EnhancedASTPrinter
 import pprint
 
@@ -165,6 +166,29 @@ parser.add_argument(
     help="Generate AST with branch and colorized keywords"
 )
 
+parser.add_argument(
+    '-i',
+    '--interpret',
+    action='store_true',
+    help="Interpret the WebAssembly program"
+)
+
+parser.add_argument(
+    '-f',
+    '--function',
+    type=str,
+    default="",
+    help="Name of the function to execute (default: first exported function)"
+)
+
+parser.add_argument(
+    '-p',
+    '--params',
+    type=str,
+    default="",
+    help="Function parameters as JSON array, e.g., '[1, 2, 3]'"
+)
+
 parser.add_argument('file', type=argparse.FileType('r'))
 args = parser.parse_args()
 
@@ -303,3 +327,8 @@ else:
 # print(ast.exports)
 
 validator.validate(ast)
+
+# After validation
+# if valid_flag:
+result = interpret_ast(ast, verbose=verb_flag, use_colors=color_flag)
+print(f"Program executed with result: {result}")

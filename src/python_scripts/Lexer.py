@@ -216,7 +216,7 @@ class BinaryInstruction(Instruction):
 class _i32_const(Instruction): 
     def __repr__(self): 
         return "_i32_const"
-    
+        # pass
 class _i32_add(BinaryInstruction):
     def __init__(self, op=None, operands=None):
         super().__init__(op, operands)
@@ -226,15 +226,19 @@ class _i32_add(BinaryInstruction):
 class _i32_sub(BinaryInstruction):
     def __repr__(self): 
         return "_i32_sub"
+    
 class _i32_mul(BinaryInstruction):
     def __repr__(self): 
         return "_i32_mul"
+    
 class _i32_div_s(BinaryInstruction):
     def __repr__(self): 
         return "_i32_div_s"
+    
 class _i32_ge_u(BinaryInstruction):
     def __repr__(self): 
         return "_i32_ge_u"
+    
 class _i32_gt_s(BinaryInstruction):
     def __repr__(self): 
         return "_i32_gt_s"
@@ -262,36 +266,83 @@ class _local_set(Instruction):
         super().__init__(op, operands)
     def __repr__(self): 
         return "_local_set"
-class _local_tee: pass
-class _global_get: pass
-class _global_set: pass
+class _local_tee(Instruction): # pass
+    def __init__(self, op=None, operands=None):
+        super().__init__(op, operands)
+    def __repr__(self): 
+        return "_local_tee"
+class _global_get: 
+    def __init__(self, op=None, operands=None):
+        super().__init__(op, operands)
+    def __repr__(self): 
+        return "_global_get"
+class _global_set: 
+    def __init__(self, op=None, operands=None):
+        super().__init__(op, operands)
+    def __repr__(self): 
+        return "_global_set"
 
-class _call(ControlFlowInstruction): pass
-class _return(ControlFlowInstruction): pass
-class _nop(ControlFlowInstruction): pass
+class _call(ControlFlowInstruction): # pass
+    # def __init__(self, op=None, operands=None):
+    #     super().__init__(op, operands)
+    # def __repr__(self, indent=0):
+    #     return super().__repr__(indent)   # TODO : can cause None in lexer
+    def __repr__(self):
+        return "_call"
+class _return(ControlFlowInstruction): 
+    def __repr__(self):
+        return "_return"
+    
+class _nop(ControlFlowInstruction): 
+    def __repr__(self):
+        return "_nop"
+    
 class _block(ControlFlowInstruction):
     # def __repr__(self): return "_block"     # Definition still necessory in subclass
     def __repr__(self):
-        return super(Instruction, self).__repr__()
+        # return super(Instruction, self).__repr__()
+        return "_block"
+    
 class _loop(ControlFlowInstruction):
     def __repr__(self):
-        return super(Instruction, self).__repr__()
-class _br(ControlFlowInstruction): pass
-class _br_if(ControlFlowInstruction): pass
-class _if(ControlFlowInstruction): pass
+        # return super(Instruction, self).__repr__()
+        return "_loop"
+    
+class _br(ControlFlowInstruction): 
+    def __repr__(self):
+        return "_br"
+    
+class _br_if(ControlFlowInstruction):
+    def __repr__(self):
+        return "_br_if"
+    
+class _if(ControlFlowInstruction): 
+    def __repr__(self):
+        return "_if"
     # def __repr__(self):
     #     return super(Instruction, self).__repr__()
-class _else(ControlFlowInstruction): pass
-class _end(ControlFlowInstruction): pass
+class _else(ControlFlowInstruction): 
+    def __repr__(self):
+        return "_else"
+    
+class _end(ControlFlowInstruction): 
+    def __repr__(self):
+        return "_end"
 
-class _i32_load(Instruction): pass
-class _i32_store(Instruction): pass
+class _i32_load(Instruction): 
+    def __repr__(self):
+        return "_i32_load"
+    
+class _i32_store(Instruction): 
+    def __repr__(self):
+        return "_i32_store"
 
 class NEWLINE:
-    def __init__(self):
-        pass
+    def __init__(self, line_number=None):
+        self.line_number = line_number
     def __repr__(self): 
-        return f"NEWLINE(\\n)"
+        return f"NEWLINE(\\n, line_number={self.line_number})"
+
 
 class SPACE:
     def __init__(self, value): 
@@ -352,7 +403,7 @@ COLORS = {
     'WARNING_COLOR': '\033[1;33m', # Warning messages - Bold Yellow  
     'SUCCESS_COLOR': '\033[1;32m', # Success messages - Bold Green
     'INFO_COLOR': '\033[1;34m',    # Information messages - Bold Blue
-    'DEBUG_COLOR': '\033[36m', # Debug messages - Cyan (no bold)
+    'LEXER_DEBUG_COLOR': '\033[36m', # Lexer debug messages - Cyan (no bold)
     'HIGHLIGHT_COLOR': '\033[7;37m',   # Highlighted text - Reverse video (white on default background)
     'RESET_COLOR': '\033[0m',  # Reset all styles and colors
 }
@@ -369,8 +420,13 @@ class Lexer:
         elif lexeme in WASM_INSTRUCTIONS:
             # if lexeme == 'return':
             #     return _return
+            if self.lex_verb_flag:
+                print(self._lex_colorize(f"Line {self.line_number}: ", 'LEXER_DEBUG_COLOR'), end="     ")
+        
+                print("In WASM_INSTRUCTIONS : " + lexeme)
+            # print(lexeme.replace('.', '_', 1))
             
-            return globals()['_' + lexeme.replace('.', '_')]
+            return globals()['_' + lexeme.replace('.', '_', 1)]
         return None
 
     def tokenize(self, wat):
@@ -390,8 +446,9 @@ class Lexer:
             
             if c.isspace():
                 if c == '\n':
-                    self.tokens.append(NEWLINE())
+
                     self.line_number += 1
+                    self.tokens.append(NEWLINE(self.line_number))
                 else:
                     self.tokens.append(SPACE(c))
                 self.pos += 1
@@ -444,10 +501,21 @@ class Lexer:
                 # print("lexer: lex_verb_flag: " + str(lex_verb_flag))
                 # if lex_verb_flag:
                 if self.lex_verb_flag:
+                    print(self._lex_colorize(f"Line {self.line_number}: ", 'LEXER_DEBUG_COLOR'), end="     ")
+
                     print('isalpha() token_class: ' + str(token_class))
+                    print('isalpha() token_type: ' + str(type(token_class)))
+                    
                 # return None
                 if token_class:
-                    self.tokens.append(token_class())       # Passing parameters here?
+                    print(self._lex_colorize(f"Line {self.line_number}: ", 'LEXER_DEBUG_COLOR'), end="     ")
+
+                    print('token_class: ' + str(token_class))
+                    if isinstance(token_class, _call):
+                        print("callllllllllll")
+                        self.tokens.append(token_class(1))
+                    else:
+                        self.tokens.append(token_class())       # Passing parameters here?
                     
                 elif lexeme == "i32":                   # TODO: signed, unsigned, etc.
                     self.tokens.append(TYPE(lexeme))
