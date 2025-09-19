@@ -1111,7 +1111,10 @@ class Parser:
             self.next_token()
             self.parse_newline_and_space()
             
-            return BinaryInstruction(op, operands)
+            # return BinaryInstruction(op, operands)
+            op_class.operands = operands
+            
+            return op_class
 
         self.next_token()
         self.parse_newline_and_space()

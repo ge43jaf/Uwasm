@@ -162,6 +162,7 @@ class Interpreter:
         # Execute function body
         try:
             result = self.execute_instructions(func.body, context)
+            print("Result in execute_function : " + str(result))
             self.call_stack.pop()
             if self.call_stack:
                 self.current_context = self.call_stack[-1]
@@ -180,6 +181,7 @@ class Interpreter:
                       f"Executing: {type(instr).__name__}, Stack: {self.stack}")
             
             result = self.execute_instruction(instr, context)
+            print("Result in execute_instructions : " + str(result))
             if result is not None:  # Return value from function
                 return result
         
@@ -232,6 +234,10 @@ class Interpreter:
         b = self.stack.pop()
         a = self.stack.pop()
         
+        print(str(type(instr)))
+        print(f"instr : {instr} in execute_binary_instruction")
+        
+        print(f"a : {a}, b : {b} in execute_binary_instruction")
         if isinstance(instr, _i32_add):
             result = a + b
         elif isinstance(instr, _i32_sub):
