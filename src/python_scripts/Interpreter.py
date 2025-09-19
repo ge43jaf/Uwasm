@@ -21,14 +21,13 @@ COLORS = {
 }
 
 class RuntimeError(Exception):
-    """Custom runtime error for WebAssembly execution"""
+    # Custom runtime error
     def __init__(self, message, line_number=None):
         self.message = message
         self.line_number = line_number
         super().__init__(f"RuntimeError: {message}" + (f" at line {line_number}" if line_number else ""))
 
 class ExecutionContext:
-    """Execution context for a function call"""
     def __init__(self, func: Func, caller_context=None):
         self.func = func
         self.locals: Dict[str, Any] = {}
@@ -69,13 +68,12 @@ class Interpreter:
         self.initialize_globals()
     
     def _colorize(self, text: str, color_key: str) -> str:
-        """Colorize text if colors are enabled"""
         if self.use_colors and color_key in COLORS:
             return f"{COLORS[color_key]}{text}{COLORS['RESET_COLOR']}"
         return text
     
     def initialize_memory(self):
-        """Initialize memory from module definition"""
+        
         for mem in self.module.mems:
             if mem.value and hasattr(mem.value, 'value'):
                 # Convert pages to bytes (1 page = 64KB)
@@ -86,7 +84,7 @@ class Interpreter:
                           f"Initialized memory with {pages} pages ({len(self.memory)} bytes)")
     
     def initialize_globals(self):
-        """Initialize global variables"""
+        
         for glob in self.module.globs:
             if glob.name and glob.value:
                 self.globals[glob.name] = int(glob.value)
@@ -115,7 +113,7 @@ class Interpreter:
             return None
     
     def find_exported_function(self) -> Optional[Func]:
-        """Find the first exported function"""
+        # Find the first exported function
         for export in self.module.exports:
             if export.exp_func and export.exp_func.name:
                 func_name = export.exp_func.name
@@ -124,7 +122,7 @@ class Interpreter:
         return None
     
     def execute_function(self, func_: Func, args: List[Any] = None) -> Any:
-        """Execute a specific function"""
+        
         if args is None:
             args = []
         
@@ -174,7 +172,7 @@ class Interpreter:
             raise e
     
     def execute_instructions(self, instructions: List[Instruction], context: ExecutionContext) -> Any:
-        """Execute a sequence of instructions"""
+        
         for instr in instructions:
             if self.verbose:
                 print(self._colorize(f"DEBUG: ", 'DEBUG_COLOR') + 
@@ -188,7 +186,7 @@ class Interpreter:
         return None
     
     def execute_instruction(self, instr: Instruction, context: ExecutionContext) -> Any:
-        """Execute a single instruction"""
+        
         try:
             if isinstance(instr, _i32_const):
                 return self.execute_i32_const(instr)
@@ -220,7 +218,7 @@ class Interpreter:
             raise RuntimeError(f"Error executing {type(instr).__name__}: {str(e)}")
     
     def execute_i32_const(self, instr: _i32_const) -> None:
-        """Execute i32.const instruction"""
+        
         if hasattr(instr, 'operands') and instr.operands:
             value = int(instr.operands[0])
             self.stack.append(value)
@@ -228,7 +226,7 @@ class Interpreter:
                 print(self._colorize(f"DEBUG: ", 'DEBUG_COLOR') + f"Pushed constant: {value}")
     
     def execute_binary_instruction(self, instr: BinaryInstruction) -> None:
-        """Execute binary arithmetic instructions"""
+        
         self.check_stack_size(2, instr)
         
         b = self.stack.pop()
@@ -262,7 +260,7 @@ class Interpreter:
             print(self._colorize(f"DEBUG: ", 'DEBUG_COLOR') + f"{type(instr).__name__}: {a} op {b} = {result}")
     
     def execute_local_get(self, instr: _local_get, context: ExecutionContext) -> None:
-        """Execute local.get instruction"""
+        
         print(f"instr : {instr} with operands : {instr.operands} in execute_local_get : ")
         if hasattr(instr, 'operands') and instr.operands:
             local_name = instr.operands[0]
@@ -275,7 +273,7 @@ class Interpreter:
                 raise RuntimeError(f"Undefined local variable: {local_name}")
     
     def execute_local_set(self, instr: _local_set, context: ExecutionContext) -> None:
-        """Execute local.set instruction"""
+        
         self.check_stack_size(1, instr)
         
         if hasattr(instr, 'operands') and instr.operands:
@@ -286,7 +284,7 @@ class Interpreter:
                 print(self._colorize(f"DEBUG: ", 'DEBUG_COLOR') + f"Set local {local_name} = {value}")
     
     def execute_call(self, instr: _call, context: ExecutionContext) -> Any:
-        """Execute call instruction"""
+        
         if hasattr(instr, 'operands') and instr.operands:
             func_name = instr.operands[0]
             if func_name in self.functions:
@@ -309,7 +307,7 @@ class Interpreter:
                 raise RuntimeError(f"Undefined function: {func_name}")
     
     def execute_return(self, instr: _return, context: ExecutionContext) -> Any:
-        """Execute return instruction"""
+        
         return_value = None
         if self.stack:
             return_value = self.stack[-1]  # Return top of stack
@@ -318,12 +316,12 @@ class Interpreter:
         return return_value
     
     def execute_nop(self) -> None:
-        """Execute nop instruction - no operation"""
+        
         if self.verbose:
             print(self._colorize(f"DEBUG: ", 'DEBUG_COLOR') + "NOP executed")
     
     def execute_control_flow(self, instr: ControlFlowInstruction, context: ExecutionContext) -> Any:
-        """Execute control flow instructions"""
+        
         if isinstance(instr, _if):
             return self.execute_if(instr, context)
         elif isinstance(instr, _block):
@@ -338,7 +336,7 @@ class Interpreter:
             raise RuntimeError(f"Unsupported control flow instruction: {type(instr).__name__}")
     
     def execute_if(self, instr: _if, context: ExecutionContext) -> Any:
-        """Execute if instruction"""
+        
         self.check_stack_size(1, instr)
         condition = self.stack.pop()
         
@@ -350,26 +348,26 @@ class Interpreter:
         return None
     
     def execute_block(self, instr: _block, context: ExecutionContext) -> Any:
-        """Execute block instruction"""
+        
         if hasattr(instr, 'operands') and instr.operands:
             return self.execute_instructions(instr.operands, context)
         return None
     
     def execute_loop(self, instr: _loop, context: ExecutionContext) -> Any:
-        """Execute loop instruction"""
+        
         # Simple implementation - just execute the body once
         if hasattr(instr, 'operands') and instr.operands:
             return self.execute_instructions(instr.operands, context)
         return None
     
     def execute_br(self, instr: _br, context: ExecutionContext) -> Any:
-        """Execute br instruction (simplified)"""
+        # TODO (simplified)
         if self.verbose:
             print(self._colorize(f"DEBUG: ", 'DEBUG_COLOR') + "BR instruction executed (no-op in simple interpreter)")
         return None
     
     def execute_br_if(self, instr: _br_if, context: ExecutionContext) -> Any:
-        """Execute br_if instruction (simplified)"""
+        # TODO (simplified)
         self.check_stack_size(1, instr)
         condition = self.stack.pop()
         if condition != 0 and hasattr(instr, 'operands') and instr.operands:
@@ -378,7 +376,7 @@ class Interpreter:
         return None
     
     def execute_i32_load(self, instr: _i32_load) -> None:
-        """Execute i32.load instruction"""
+        
         self.check_stack_size(1, instr)
         address = self.stack.pop()
         
@@ -394,7 +392,7 @@ class Interpreter:
             print(self._colorize(f"DEBUG: ", 'DEBUG_COLOR') + f"Loaded from memory[{address}]: {value}")
     
     def execute_i32_store(self, instr: _i32_store) -> None:
-        """Execute i32.store instruction"""
+        
         self.check_stack_size(2, instr)
         value = self.stack.pop()
         address = self.stack.pop()
@@ -410,7 +408,7 @@ class Interpreter:
             print(self._colorize(f"DEBUG: ", 'DEBUG_COLOR') + f"Stored to memory[{address}]: {value}")
     
     def check_stack_size(self, required: int, instr: Instruction) -> None:
-        """Check if stack has enough elements for operation"""
+        # Check if stack has enough elements for operation
         if len(self.stack) < required:
             raise RuntimeError(
                 f"Stack underflow for {type(instr).__name__}: "
@@ -418,14 +416,14 @@ class Interpreter:
             )
     
     def get_result(self) -> Optional[Any]:
-        """Get the final result from stack"""
+        # Get the final result from stack
         if self.stack:
             return self.stack[-1]
         return None
 
 # Helper function to integrate with existing main.py
 def interpret_ast(ast: Module, verbose: bool = False, use_colors: bool = False) -> Optional[Any]:
-    """Convenience function to interpret an AST"""
+    
     interpreter = Interpreter(ast, verbose=verbose, use_colors=use_colors)
     result = interpreter.execute()
     
@@ -441,3 +439,7 @@ if __name__ == "__main__":
     # Test the interpreter standalone
     print("WebAssembly Interpreter - Standalone Test")
     print("This module is designed to be imported and used with the existing parser/validator")
+    
+    
+    
+# TODO : Check for export, etc. Currently all func called $foo
