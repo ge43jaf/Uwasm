@@ -5,7 +5,7 @@ from Lexer import (
     _i32_ge_u, _i32_gt_s, _i32_lt_s, _i32_clz,
     _local_get, _local_set, _local_tee,
     _global_get, _global_set,
-    _call, _return, _nop, _block, _loop, _br, _br_if, _if, _else,
+    _call, _return, _nop, _block, _loop, _br, _br_if, _if,  _else, _end,
     _i32_load, _i32_store
 )
 from typing import List, Dict, Any, Optional, Union
@@ -34,6 +34,8 @@ class ExecutionContext:
         self.return_value = None
         self.caller_context = caller_context
         self.pc = 0  # Program counter for instruction sequence
+        self.loops: Dict[str, Any] = {}
+        self.ifs: Dict[str, Any] = {}
         
         # Initialize locals with default values
         for local in func.locals:
@@ -119,6 +121,7 @@ class Interpreter:
                 func_name = export.exp_func.name
                 if func_name in self.functions:
                     return self.functions[func_name]
+        raise RuntimeError(f"Nothing returned in find_exported_function()")
         return None
     
     def execute_function(self, func_: Func, args: List[Any] = None) -> Any:
@@ -182,7 +185,8 @@ class Interpreter:
             print("Result in execute_instructions : " + str(result))
             if result is not None:  # Return value from function
                 return result
-        
+
+        # raise RuntimeError(f"Nothing returned in execute_instructions()")
         return None
     
     def execute_instruction(self, instr: Instruction, context: ExecutionContext) -> Any:
@@ -336,7 +340,9 @@ class Interpreter:
             raise RuntimeError(f"Unsupported control flow instruction: {type(instr).__name__}")
     
     def execute_if(self, instr: _if, context: ExecutionContext) -> Any:
-        
+        if hasattr(instr, 'name') and instr.name:
+            context.ifs[instr.name] = instr
+            
         self.check_stack_size(1, instr)
         condition = self.stack.pop()
         
@@ -344,26 +350,31 @@ class Interpreter:
             if hasattr(instr, 'operands') and instr.operands:
                 return self.execute_instructions(instr.operands, context)
         # Else branch would be handled here if implemented
-        
+        # raise RuntimeError(f"Nothing returned in execute_if()")
         return None
     
     def execute_block(self, instr: _block, context: ExecutionContext) -> Any:
         
         if hasattr(instr, 'operands') and instr.operands:
             return self.execute_instructions(instr.operands, context)
+        raise RuntimeError(f"Nothing returned in execute_block()")
         return None
     
     def execute_loop(self, instr: _loop, context: ExecutionContext) -> Any:
-        
+        if hasattr(instr, 'name') and instr.name:
+            context.loops[instr.name] = instr
+            
         # Simple implementation - just execute the body once
         if hasattr(instr, 'operands') and instr.operands:
             return self.execute_instructions(instr.operands, context)
+        raise RuntimeError(f"Nothing returned in execute_loop()")
         return None
     
     def execute_br(self, instr: _br, context: ExecutionContext) -> Any:
         # TODO (simplified)
         if self.verbose:
             print(self._colorize(f"DEBUG: ", 'DEBUG_COLOR') + "BR instruction executed (no-op in simple interpreter)")
+        raise RuntimeError(f"Nothing returned in execute_br()")
         return None
     
     def execute_br_if(self, instr: _br_if, context: ExecutionContext) -> Any:
@@ -372,7 +383,17 @@ class Interpreter:
         condition = self.stack.pop()
         if condition != 0 and hasattr(instr, 'operands') and instr.operands:
             # Branch target would be used here in full implementation
-            pass
+            instr_name = instr.operands[0]
+            if instr_name in context.ifs:
+                return self.execute_if(context.ifs[instr_name], context)
+            elif instr_name in context.loops:
+                return self.execute_loop(context.loops[instr_name], context)
+            else:
+                raise RuntimeError(f"No if or loop called {instr_name}")
+        
+        # else:
+        #     raise RuntimeError(f"No operand for {instr}")
+        # raise RuntimeError(f"Nothing returned in execute_br_if()")
         return None
     
     def execute_i32_load(self, instr: _i32_load) -> None:
@@ -419,6 +440,7 @@ class Interpreter:
         # Get the final result from stack
         if self.stack:
             return self.stack[-1]
+        raise RuntimeError(f"Nothing returned in get_result()")
         return None
 
 # Helper function to integrate with existing main.py

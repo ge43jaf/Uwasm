@@ -304,6 +304,11 @@ class _block(ControlFlowInstruction):
         return "_block"
     
 class _loop(ControlFlowInstruction):
+    def __init__(self, op=None, operands=None, name=None):
+        self.op = op
+        self.operands = operands if operands else []
+        self.name = name
+        
     def __repr__(self):
         # return super(Instruction, self).__repr__()
         return "_loop"
@@ -317,10 +322,19 @@ class _br_if(ControlFlowInstruction):
         return "_br_if"
     
 class _if(ControlFlowInstruction): 
+    def __init__(self, op=None, operands=None, name=None):
+        self.op = op
+        self.operands = operands if operands else []
+        self.name = name
+        
     def __repr__(self):
         return "_if"
     # def __repr__(self):
     #     return super(Instruction, self).__repr__()
+class _then(ControlFlowInstruction): 
+    def __repr__(self):
+        return "_then"
+    
 class _else(ControlFlowInstruction): 
     def __repr__(self):
         return "_else"
@@ -393,6 +407,7 @@ WASM_INSTRUCTIONS = {
             'br': 1,
             'br_if': 1,
             'if': 'var',
+            'then': 'var',
             'else': 'var',
             'end': 'var'
         }

@@ -225,10 +225,12 @@ class EnhancedASTPrinter(ASTPrinter):
             'Function': '\033[1;32m',        # Bold green
                 'Param': '\033[0;32m',       # Green
                 'Local': '\033[0;33m',       # Yellow
+                
             'Export': '\033[1;33m',          # Bold yellow
             
             'Instruction': '\033[1;36m',     # Bold cyan
-            
+                'Operand': '\033[1;33m',     # Bold Yellow
+
             'Type': '\033[0;36m',            # Cyan
             'Reset': '\033[0m'               # Reset
         }
@@ -345,12 +347,13 @@ class EnhancedASTPrinter(ASTPrinter):
         if func.body:
             print(f"{prefix}{self.last_branch_str}Body:")
             body_prefix = prefix + self.indent_str
-            self._print_node(func.body, body_prefix, True, show_types)
-    
+            # self._print_node(func.body, body_prefix, True, show_types)
+            self._print_list(func.body, body_prefix, True, show_types)
+
     def _print_instruction(self, instr, prefix, is_last, show_types):
         # print("op : " + str(instr.op) + " operands : " + str(instr.operands)) #TODO: Usage for Debug
-        instr_name = getattr(instr, 'op', type(instr).__name__)
-        # instr_name = type(instr).__name__
+        # instr_name = getattr(instr, 'op', type(instr).__name__)
+        instr_name = type(instr).__name__
         # print(instr_name) #TODO: Usage for Debug
         colored_instr = self._colorize(instr_name, 'Instruction')
         
@@ -374,14 +377,30 @@ class EnhancedASTPrinter(ASTPrinter):
                 print(f"{prefix}{branch}{item_str}")
             elif isinstance(item, str):
                 # Simple string items (like result types)
-                print(f"{prefix}{branch}{item}")
+                colored_item = self._colorize(item, 'Operand')
+                # TODO: Actually colored item here
+                print(f"{prefix}{branch}{colored_item}")
             else:
                 # print("type of item in body: " + str(type(item).__name__))    #TODO: Usage for Debug
                 # print("item in body: " + str(item))
                 # Complex items
-                print(f"{prefix}{branch}{type(item).__name__}")
-                self._print_node(item, new_prefix, i == len(items) - 1, show_types)
-    
+                colored_item = self._colorize(type(item).__name__, 'Instruction')
+                if isinstance(item, (_if, _loop)):
+                    name_display = item.name if item.name else "[anonymous]"
+                    # print(f"{prefix}{self.last_branch_str if is_last else self.branch_str}"
+                    print(f"{prefix}{branch}{colored_item}"
+                          f": {self._colorize(name_display, 'Type')}")
+                else:
+                    print(f"{prefix}{branch}{colored_item}")
+                # self._print_node(item, new_prefix, i == len(items) - 1, show_types)
+                # print("item.operands : " + str(item.operands))
+                
+                # if item and item.operands is not None:
+                #     self._print_list(item.operands, new_prefix, i == len(items) - 1, show_types)
+                # else:
+                #     self._print_node(item, new_prefix, i == len(items) - 1, show_types)
+                self._print_list(item.operands, new_prefix, i == len(items) - 1, show_types)
+                
     def _print_operands(self, operands, prefix, show_types):
 
         if isinstance(operands, dict):
@@ -392,8 +411,15 @@ class EnhancedASTPrinter(ASTPrinter):
                     print(f"{prefix}{branch}{key.capitalize()}:")
                     self._print_node(value, prefix + self.indent_str, is_last, show_types)
         else:
+            # for i, operand in enumerate(operands):
+            #     is_last = i == len(operands) - 1
+            #     branch = self.last_branch_str if is_last else self.branch_str
+            #     operand_str = self._format_operand(operand, show_types)
+            #     print(f"{prefix}{branch}{operand_str}")
+            
             for i, operand in enumerate(operands):
                 is_last = i == len(operands) - 1
                 branch = self.last_branch_str if is_last else self.branch_str
                 operand_str = self._format_operand(operand, show_types)
-                print(f"{prefix}{branch}{operand_str}")
+                # print(f"{prefix}{branch}{operand_str}")
+                self._print_node(operand, prefix + self.indent_str, is_last, show_types)
