@@ -492,7 +492,7 @@ class Parser:
                     
                     print('ControlFlowInstruction :  ' + str(type(self.current_token)))
                 
-                    controlFlowInstr = self.parse_control_flow()
+                    controlFlowInstr = self.parse_control_flow(imm_cf = False)
                     if controlFlowInstr is None:
                         print(self._par_colorize("ERROR: ", 'ERROR_COLOR'), end="\n     ")
                         print(f"Line {self.line_number}: No valid control flow instruction")
@@ -542,7 +542,7 @@ class Parser:
                 
                 print('ControlFlowInstruction without (...):  ' + str(type(self.current_token)))
 
-                controlFlowInstr = self.parse_control_flow()
+                controlFlowInstr = self.parse_control_flow(imm_cf = True)
                 if controlFlowInstr is None:
                     print(self._par_colorize("ERROR: ", 'ERROR_COLOR'), end="\n     ")
                     print(f"Line {self.line_number}: No valid control flow instruction")
@@ -620,14 +620,15 @@ class Parser:
             self.next_token()
             self.parse_newline_and_space()
             
-        self.next_token()
-        self.parse_newline_and_space()    
+          
         # TODO: Error?
         print(f'Line {self.line_number}: After looping: ' + str(self.current_token))
         if not isinstance(self.current_token, RPAREN):
             print(self._par_colorize("ERROR: ", 'ERROR_COLOR'), end="\n     ")
             print(f"Line {self.line_number}: Unexpected token '{self.current_token}', expected ')' after all func elements")
             return None
+        self.next_token()
+        self.parse_newline_and_space()  
             
         return func
     
@@ -748,7 +749,7 @@ class Parser:
         
         return result_types
     
-    def parse_control_flow(self):
+    def parse_control_flow(self, imm_cf):
         
         print(self._par_colorize(f"Line {self.line_number}: ", 'PARSER_DEBUG_COLOR'), end="     ")
                 
@@ -758,14 +759,30 @@ class Parser:
             self.next_token()
             self.parse_newline_and_space()
             # return ControlFlowInstruction(_nop)
-            return _nop
+            
+            if not imm_cf and not isinstance(self.current_token, RPAREN):
+                print(self._par_colorize("ERROR: ", 'ERROR_COLOR'), end="\n     ")
+                print(f"Line {self.line_number}: Unexpected token '{self.current_token}', expected ')' after control flow instruction")
+                return None
+            elif not imm_cf:
+                # self.next_token()
+                # self.parse_newline_and_space()
+                pass
+            return _nop()
         
         elif isinstance(self.current_token, _block):
             op_block = self.current_token
             
             self.next_token()
             self.parse_newline_and_space()
-            
+            if not imm_cf and not isinstance(self.current_token, RPAREN):
+                print(self._par_colorize("ERROR: ", 'ERROR_COLOR'), end="\n     ")
+                print(f"Line {self.line_number}: Unexpected token '{self.current_token}', expected ')' after control flow instruction")
+                return None
+            elif not imm_cf:
+                # self.next_token()
+                # self.parse_newline_and_space()
+                pass
             return self.parse_block(op_block)
             
         elif isinstance(self.current_token, _loop):
@@ -773,7 +790,14 @@ class Parser:
             
             self.next_token()
             self.parse_newline_and_space()
-            
+            if not imm_cf and not isinstance(self.current_token, RPAREN):
+                print(self._par_colorize("ERROR: ", 'ERROR_COLOR'), end="\n     ")
+                print(f"Line {self.line_number}: Unexpected token '{self.current_token}', expected ')' after control flow instruction")
+                return None
+            elif not imm_cf:
+                # self.next_token()
+                # self.parse_newline_and_space()
+                pass
             return self.parse_loop(op_loop)
 
         elif isinstance(self.current_token, _br):
@@ -781,7 +805,14 @@ class Parser:
             
             self.next_token()
             self.parse_newline_and_space()
-            
+            if not imm_cf and not isinstance(self.current_token, RPAREN):
+                print(self._par_colorize("ERROR: ", 'ERROR_COLOR'), end="\n     ")
+                print(f"Line {self.line_number}: Unexpected token '{self.current_token}', expected ')' after control flow instruction")
+                return None
+            elif not imm_cf:
+                # self.next_token()
+                # self.parse_newline_and_space()
+                pass
             return self.parse_br(op_br)
 
         elif isinstance(self.current_token, _br_if):
@@ -789,7 +820,14 @@ class Parser:
             
             self.next_token()
             self.parse_newline_and_space()
-            
+            if not imm_cf and not isinstance(self.current_token, RPAREN):
+                print(self._par_colorize("ERROR: ", 'ERROR_COLOR'), end="\n     ")
+                print(f"Line {self.line_number}: Unexpected token '{self.current_token}', expected ')' after control flow instruction")
+                return None
+            elif not imm_cf:
+                # self.next_token()
+                # self.parse_newline_and_space()
+                pass
             return self.parse_br_if(op_br_if)
         
         elif isinstance(self.current_token, _if):
@@ -797,7 +835,14 @@ class Parser:
             
             self.next_token()
             self.parse_newline_and_space()
-            
+            if not imm_cf and not isinstance(self.current_token, RPAREN):
+                print(self._par_colorize("ERROR: ", 'ERROR_COLOR'), end="\n     ")
+                print(f"Line {self.line_number}: Unexpected token '{self.current_token}', expected ')' after control flow instruction")
+                return None
+            elif not imm_cf:
+                # self.next_token()
+                # self.parse_newline_and_space()
+                pass
             return self.parse_if(op_if)
             
         elif isinstance(self.current_token, _call):
@@ -815,6 +860,16 @@ class Parser:
             self.parse_newline_and_space()
             
             op_call.operands = {operand}
+            if not imm_cf and not isinstance(self.current_token, RPAREN):
+                print(self._par_colorize("ERROR: ", 'ERROR_COLOR'), end="\n     ")
+                print(f"Line {self.line_number}: Unexpected token '{self.current_token}', expected ')' after control flow instruction")
+                return None
+            elif not imm_cf:
+                # self.next_token()
+                # self.parse_newline_and_space()
+                pass
+            
+            print(f"Before returning op_call : {self.current_token}")
             return op_call
             # return ControlFlowInstruction(_call, {operand})
         
@@ -826,7 +881,17 @@ class Parser:
             self.parse_newline_and_space()
             op_return.operands = []
             # return ControlFlowInstruction(_return)
-            return _return()
+            
+            if not imm_cf and not isinstance(self.current_token, RPAREN):
+                print(self._par_colorize("ERROR: ", 'ERROR_COLOR'), end="\n     ")
+                print(f"Line {self.line_number}: Unexpected token '{self.current_token}', expected ')' after control flow instruction")
+                return None
+            elif not imm_cf:
+                # self.next_token()
+                # self.parse_newline_and_space()
+                pass
+            # return _return()
+            return op_return
         
         else:
             op = self.current_token
@@ -838,8 +903,17 @@ class Parser:
             
             # pass
             # return ControlFlowInstruction(op)
+            if not imm_cf and not isinstance(self.current_token, RPAREN):
+                print(self._par_colorize("ERROR: ", 'ERROR_COLOR'), end="\n     ")
+                print(f"Line {self.line_number}: Unexpected token '{self.current_token}', expected ')' after control flow instruction")
+                return None
+            elif not imm_cf:
+                pass
+                # self.next_token()
+                # self.parse_newline_and_space()
             return op
-    
+
+            
     # def parse_call(self):
         
     def parse_block(self, op_block: _block):
@@ -852,7 +926,7 @@ class Parser:
                 self.parse_newline_and_space()
                 
                 if isinstance(self.current_token, ControlFlowInstruction):
-                    nested_instr = self.parse_control_flow()
+                    nested_instr = self.parse_control_flow(imm_cf = False)
                     if nested_instr is None:
                         print(self._par_colorize("ERROR: ", 'ERROR_COLOR'), end="\n     ")
                         print(f"Line {self.line_number}: None returned after parsing control flow, current token : '{self.current_token}'")
@@ -886,7 +960,7 @@ class Parser:
                     self.parse_newline_and_space()
                     
                 elif isinstance(self.current_token, ControlFlowInstruction):
-                    nested_instr = self.parse_control_flow()
+                    nested_instr = self.parse_control_flow(imm_cf = True)
                     if nested_instr is None:
                         print(self._par_colorize("ERROR: ", 'ERROR_COLOR'), end="\n     ")
                         print(f"Line {self.line_number}: None returned after parsing control flow, current token : '{self.current_token}'")
@@ -925,7 +999,7 @@ class Parser:
                 self.parse_newline_and_space()
                 
                 if isinstance(self.current_token, ControlFlowInstruction):
-                    nested_instr = self.parse_control_flow()
+                    nested_instr = self.parse_control_flow(imm_cf = False)
                     if nested_instr is None:
                         print(self._par_colorize("ERROR: ", 'ERROR_COLOR'), end="\n     ")
                         print(f"Line {self.line_number}: None returned after parsing control flow, current token : '{self.current_token}'")
@@ -979,7 +1053,7 @@ class Parser:
                     self.parse_newline_and_space()
                     
                 elif isinstance(self.current_token, ControlFlowInstruction):
-                    nested_instr = self.parse_control_flow()
+                    nested_instr = self.parse_control_flow(imm_cf = True)
                     print(f'Line {self.line_number}: nested control flow in parse_loop : {nested_instr}')   #TODO
                     if nested_instr is None:
                         print(self._par_colorize("ERROR: ", 'ERROR_COLOR'), end="\n     ")
@@ -1046,7 +1120,7 @@ class Parser:
                 
                 # Parse nested instruction
                 if isinstance(self.current_token, ControlFlowInstruction):
-                    nested_instr = self.parse_control_flow()
+                    nested_instr = self.parse_control_flow(imm_cf = False)
                     if nested_instr is None:
                         print(self._par_colorize("ERROR: ", 'ERROR_COLOR'), end="\n     ")
                         print(f"Line {self.line_number}: None returned after parsing control flow, current token : '{self.current_token}'")
@@ -1087,7 +1161,7 @@ class Parser:
                     self.parse_newline_and_space()
                     
                 elif isinstance(self.current_token, ControlFlowInstruction):
-                    nested_instr = self.parse_control_flow()
+                    nested_instr = self.parse_control_flow(imm_cf = True)
                     if nested_instr is None:
                         print(self._par_colorize("ERROR: ", 'ERROR_COLOR'), end="\n     ")
                         print(f"Line {self.line_number}: None returned after parsing control flow, current token : '{self.current_token}'")
@@ -1139,7 +1213,7 @@ class Parser:
                     operands.append(then_instr)
                     
                 if isinstance(self.current_token, ControlFlowInstruction):
-                    nested_instr = self.parse_control_flow()
+                    nested_instr = self.parse_control_flow(imm_cf = False)
                     if nested_instr is None:
                         print(self._par_colorize("ERROR: ", 'ERROR_COLOR'), end="\n     ")
                         print(f"Line {self.line_number}: None returned after parsing control flow, current token : '{self.current_token}'")
@@ -1188,7 +1262,7 @@ class Parser:
                     self.parse_newline_and_space()
                     
                 elif isinstance(self.current_token, ControlFlowInstruction):
-                    nested_instr = self.parse_control_flow()
+                    nested_instr = self.parse_control_flow(imm_cf = True)
                     if nested_instr is None:
                         print(self._par_colorize("ERROR: ", 'ERROR_COLOR'), end="\n     ")
                         print(f"Line {self.line_number}: None returned after parsing control flow, current token : '{self.current_token}'")
@@ -1311,7 +1385,7 @@ class Parser:
                         self.parse_newline_and_space()
                     
                     elif isinstance(self.current_token, ControlFlowInstruction):
-                        nested_instr = self.parse_control_flow()
+                        nested_instr = self.parse_control_flow(imm_cf = True)
                         if nested_instr is None:
                             print(self._par_colorize("ERROR: ", 'ERROR_COLOR'), end="\n     ")
                             print(f"Line {self.line_number}: None returned after parsing control flow, current token : '{self.current_token}'")
@@ -1356,7 +1430,7 @@ class Parser:
                 
                 # Parse nested instruction
                 if isinstance(self.current_token, ControlFlowInstruction):
-                    nested_instr = self.parse_control_flow()
+                    nested_instr = self.parse_control_flow(imm_cf = False)
                     if nested_instr is None:
                         print(self._par_colorize("ERROR: ", 'ERROR_COLOR'), end="\n     ")
                         print(f"Line {self.line_number}: None returned after parsing control flow, current token : '{self.current_token}'")
@@ -1397,7 +1471,7 @@ class Parser:
                     self.parse_newline_and_space()
                     
                 elif isinstance(self.current_token, ControlFlowInstruction):
-                    nested_instr = self.parse_control_flow()
+                    nested_instr = self.parse_control_flow(imm_cf = True)
                     if nested_instr is None:
                         print(self._par_colorize("ERROR: ", 'ERROR_COLOR'), end="\n     ")
                         print(f"Line {self.line_number}: None returned after parsing control flow, current token : '{self.current_token}'")
@@ -1648,7 +1722,7 @@ class Parser:
                     print(f"Line {self.line_number}: Unexpected token '{self.current_token}', expected ')' after nested instruction")
                     return None
             elif isinstance(self.current_token, ControlFlowInstruction):
-                nested_instr = self.parse_control_flow()
+                nested_instr = self.parse_control_flow(imm_cf = True)
                 if nested_instr is None:
                     print(self._par_colorize("ERROR: ", 'ERROR_COLOR'), end="\n     ")
                     print(f"Line {self.line_number}: None returned after parsing control flow, current token : '{self.current_token}'")
