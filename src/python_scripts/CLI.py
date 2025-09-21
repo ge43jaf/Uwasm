@@ -1,6 +1,6 @@
 from Lexer import Lexer
 from Parser import Parser
-import main
+import python_scripts.main_original as main_original
 import pprint
 
 import argparse
@@ -66,15 +66,15 @@ def run_tests():
 if args.test:
     run_tests()
 elif args.ast:
-    main.verb_flag = False
-    main()
+    main_original.verb_flag = False
+    main_original()
 
 elif args.verbose:
-    main.verb_flag = True
-    main()
+    main_original.verb_flag = True
+    main_original()
     
 else:
     print("Error: Either specify an input file or use -t to run tests")
     parser.print_help()
     
-print("main.verb_flag: " + main.verb_flag)
+print("main.verb_flag: " + main_original.verb_flag)

@@ -16,5 +16,5 @@
     end
   )
 
-  (start 1) ;; run the first function automatically
+  ;; (start 1) ;; run the first function automatically
 )

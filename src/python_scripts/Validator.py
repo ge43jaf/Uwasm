@@ -11,6 +11,7 @@ from Lexer import (
     _i32_ge_u,
     _i32_gt_s,
     _i32_lt_s,
+    _i32_lt_u,
     
     _i32_clz,
     

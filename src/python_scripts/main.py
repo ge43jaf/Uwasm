@@ -1,179 +1,73 @@
 from Lexer import Lexer
 from Parser import Parser
 from Validator import Validator
-from Interpreter import interpret_ast
 from ASTPrinter import ASTPrinter, EnhancedASTPrinter
+from Interpreter import interpret_ast, Interpreter
 import pprint
-
 import os
 import sys
 import argparse
 from pathlib import Path
+import json
 
 verb_flag = False
 valid_flag = False
 color_flag = False
 
-wat_code_0 = """
-    (module
-        (memory $mem1 1)
-    
-        (func $add (param $a i32) (param $b i32) (result i32)
-            (local.get $a)
-            (local.get $b)
-            (i32.add)
-        )
-        (export "add" (func $add))
-        
-        (func $getAnswer (result i32)
-            (i32.const 42))
-        (func (export "getAnswerPlus1") (result i32)
-            
-            (i32.const 1)
-            (i32.add))
-        (func $qwe
-            nop
-            
-        )
-    )
-    """
+# ... (keep your existing imports and setup code) ...
 
-wat_code______to_test = """
-(module
-  ;;(import "console" "log" (func $log (param i32)))
-  (func $fib (param $fib i32) (result i32)
-    (local $a i32)
-    (local $b i32)
-    (local $nextTerm i32)
+parser_arg = argparse.ArgumentParser(description="An interpreter for WASM")
 
-    local.get $fib
-    i32.const 2
-    i32.lt_s
-    if
-      local.get $fib
-      call $log
-      local.get $fib
-      return
-    end
-
-    ;; Stack: a=0, b=1
-    i32.const 0
-    local.set $a
-    local.get $a
-    call $log
-
-    i32.const 1
-    local.set $b
-    local.get $b
-    call $log
-
-    loop $loop
-      local.get $a
-      local.get $b
-      i32.add
-      local.set $nextTerm
-      local.get $nextTerm
-      call $log
-    
-      local.get $b
-      local.set $a
-    
-      local.get $nextTerm
-      local.set $b
-    
-      local.get $fib
-      i32.const 1
-      i32.sub
-      local.set $fib
-    
-      local.get $fib
-      i32.const 0
-      i32.gt_s
-      br_if $loop
-    end
-    
-    local.get $b
-  )
-
-  (export "fib" (func $fib))
-)
-"""
-wat_code = """(module
-(memory $mem1 1)
-  (func $add (param $a i32) (param $b i32) (result i32)
-            (local $a i32)
-            (local $b i32)
-            (local.get $a)
-            (local.get $b)
-            (i32.lt_s)
-        )
-        (export "add" (func $add))
-        
-        )
-
-    
-"""
-# TODO : export check name existance, etc.
-
-try:
-    with open('../tests/success/test004_export.wat', 'r') as file:
-        wat_code = file.read()
-except FileNotFoundError:
-    print("Error: File '../test/success' not found.")
-
-
-parser = argparse.ArgumentParser(description="An interpreter for WASM")
-
-parser.add_argument(
+parser_arg.add_argument(
     '-t',
     '--test',
     action='store_true',
     help="Run all test files in ../tests/success and ../tests/failure"
 )
 
-parser.add_argument(
+parser_arg.add_argument(
     '-a',
     '--ast',
     action='store_true',
     help="Generate AST for the input"
 )
 
-parser.add_argument(
+parser_arg.add_argument(
     '-d',
     '--debug',
     action='store_true',
     help="List all intermediate verbose steps, can be used for debugging purposes"
 )
 
-parser.add_argument(
+parser_arg.add_argument(
     '-v',
     '--validate',
     action='store_true',
-    help="Validate the programm based on the generated AST"
+    help="Validate the program based on the generated AST"
 )
 
-parser.add_argument(
+parser_arg.add_argument(
     '-b',
     '--branch',
     action='store_true',
     help="Generate AST with branch structure"
 )
 
-parser.add_argument(
+parser_arg.add_argument(
     '-c',
     '--color',
     action='store_true',
     help="Generate AST with branch and colorized keywords"
 )
 
-parser.add_argument(
+parser_arg.add_argument(
     '-i',
     '--interpret',
     action='store_true',
     help="Interpret the WebAssembly program"
 )
 
-parser.add_argument(
+parser_arg.add_argument(
     '-f',
     '--function',
     type=str,
@@ -181,7 +75,7 @@ parser.add_argument(
     help="Name of the function to execute (default: first exported function)"
 )
 
-parser.add_argument(
+parser_arg.add_argument(
     '-p',
     '--params',
     type=str,
@@ -189,8 +83,16 @@ parser.add_argument(
     help="Function parameters as JSON array, e.g., '[1, 2, 3]'"
 )
 
-parser.add_argument('file', type=argparse.FileType('r'))
-args = parser.parse_args()
+parser_arg.add_argument(
+    '-o',
+    '--output',
+    type=str,
+    choices=['text', 'json', 'quiet'],
+    default='text',
+    help="Output format for results"
+)
+
+parser_arg.add_argument('file', type=argparse.FileType('r'), nargs='?', help="Input .wat file")
 
 def run_tests():
     test_dirs = ["../tests/success", "../tests/failure"]
@@ -229,106 +131,187 @@ def run_tests():
                 print(f"Test {test_file.name} completed")
 
 
-if args.test:
-    run_tests()
-if args.ast:
-    verb_flag = False
-    valid_flag = False
+def main():
+    global verb_flag, valid_flag, color_flag
     
-if args.debug:
-    verb_flag = True
+    args = parser_arg.parse_args()
     
-if args.validate:
-    valid_flag = True
-if args.color:
-    color_flag = True
-# Check if file was successfully opened
-if args.file:
-    print(f"File '{args.file.name}' opened successfully")
-        
-    # work with the file object
+    # Set flags based on arguments
+    if args.debug:
+        verb_flag = True
+    if args.validate:
+        valid_flag = True
+    if args.color:
+        color_flag = True
+    
+    # Handle test mode
+    if args.test:
+        run_tests()
+        return
+    
+    # Check if file was provided
+    if not args.file:
+        print("Error: No input file specified")
+        parser_arg.print_help()
+        sys.exit(1)
+    
+    # Read and process the file
     try:
-        # Read and process the file content
         wat_code = args.file.read()
+        args.file.close()
         
-        # Or read line by line
-        # args.file.seek(0)  # Reset file pointer to beginning
-        # lines = args.file.readlines()
-        # print(f"Number of lines: {len(lines)}")
+        if verb_flag:
+            print("=== SOURCE CODE ===")
+            print(wat_code)
+            print("===================")
             
     except Exception as e:
         print(f"Error reading file: {e}")
         sys.exit(1)
+    
+
+    lexer = Lexer()
+    if verb_flag:
+        lexer.lex_verb_flag = True
+    if color_flag:
+        lexer.lex_col_flag = True
+        
+    tokens = lexer.tokenize(wat_code)
+    if tokens is None:
+        print("Lexical analysis failed")
+        sys.exit(1)
+        
+    if verb_flag:
+        print("\n=== TOKENS ===")
+        for token in tokens:
+            print(token)
+        print("==============")
+    
+
+    parser = Parser()
+    if verb_flag:
+        parser.par_verb_flag = True
+    if color_flag:
+        parser.par_col_flag = True
+    
+    print("\n=== Parsing ===")
+        
+    ast = parser.parse(tokens)
+    if ast is None:
+        print("Parsing failed")
+        sys.exit(1)
+    
+    # AST Printing
+    if args.ast or args.branch or args.color:
+        astPrinter = ASTPrinter()
+        enhancedAstPrinter = EnhancedASTPrinter()
+        
+        if args.branch:
+            print("\n=== AST (BRANCH STRUCTURE) ===")
+            astPrinter.print_ast(ast)
+        elif args.color:
+            print("\n=== AST (COLORIZED) ===")
+            enhancedAstPrinter.print_ast(ast)
+        else:
+            print("\n=== AST ===")
+            pprint.pprint(ast)
+    
+    # Validation
+    validator = Validator()
+    if color_flag:
+        validator.val_col_flag = True
+        
+    if valid_flag:
+        print("\n=== VALIDATION ===")
+        validation_result = validator.validate(ast)
+        if validation_result:
+            print("✓ Validation passed")
+        else:
+            print("✗ Validation failed")
+            sys.exit(1)
+    
+    # Interpretation
+    if args.interpret:
+        print("\n=== INTERPRETATION ===")
+        
+        # Parse function parameters
+        params = []
+        if args.params:
+            params = args.params.split()
+            # try:
+            #     params = json.loads(args.params)
+            #     if not isinstance(params, list):
+            #         print("Error: Parameters must be a JSON array")
+            #         sys.exit(1)
+            # except json.JSONDecodeError:
+            #     print("Error: Invalid JSON format for parameters")
+            #     sys.exit(1)
+        
+        print(params)
+        print(list(map(int, params)))
+        params = list(map(int, params))
+
+        interpreter = Interpreter(ast, verbose=True, use_colors=color_flag)
+        
+        # Execute specific function or find exported function
+        result = None
+        print(args.function)
+        if args.function:
+            # Find the specified function
+            func_to_execute = None
+            for func in ast.funcs:
+                if func.name == args.function:
+                    func_to_execute = func
+                    break
+            # print("func_to_execute")
+            if func_to_execute:
+                try:
+                    result = interpreter.execute_function(func_to_execute, params)
+                except Exception as e:
+                    print(f"Error executing function {args.function}: {e}")
+                    sys.exit(1)
+            else:
+                print(f"Error: Function '{args.function}' not found")
+                sys.exit(1)
+        else:
+            # Execute with default behavior (exported function or first function)
+            if ast.funcs:
+                
+                result = interpreter.execute_function(ast.funcs[0].name, params)
+            print("Result : " + str(type(result)))
             
-    finally:
-        # Always close the file
-        args.file.close()
-else:
-    print("Error: Either specify an input file or use -t to run tests")
-    parser.print_help()
-    
-print("main.verb_flag: " + str(verb_flag))
+            # try:
+            #     # result = interpreter.execute()
+            #     result = interpreter.execute_function("$fib", params)
+            # except Exception as e:
+            #     print(f"Error during execution: {e}")
+            #     sys.exit(1)
+        
+        # Output results
+        if args.output == 'json':
+            output_data = {
+                "success": True,
+                "result": result,
+                "stack_size": len(interpreter.stack),
+                "memory_size": len(interpreter.memory)
+            }
+            print(json.dumps(output_data, indent=2))
+        elif args.output == 'text':
+            if result is not None:
+                print(f"Result: {result}")
+            else:
+                print("Execution completed (no return value)")
+            
+            # if verb_flag:
+            # if True:
+            print(f"Final stack size: {len(interpreter.stack)}")
+            print(f"Memory size: {len(interpreter.memory)} bytes")
 
-if verb_flag:
-    print(wat_code)
+        
+        print("Stack : " + str(interpreter.stack))
+        print("✓ Interpretation completed")
 
-lexer = Lexer()
-parser = Parser()
-validator = Validator()
-
-if verb_flag:
-    lexer.lex_verb_flag = True
-    parser.par_verb_flag = True
-else:
-    lexer.lex_verb_flag = False
-    parser.par_verb_flag = False
-
-if color_flag:
-    lexer.lex_col_flag = True
-    parser.par_col_flag = True
-    validator.val_col_flag = True
-else:
-    lexer.lex_col_flag = False
-    parser.par_col_flag = False
-    validator.val_col_flag = False
-    
-print("lexer.lex_verb_flag: " + str(lexer.lex_verb_flag), "\nparser.par_verb_flag: " + str(parser.par_verb_flag) )
-tokens = lexer.tokenize(wat_code)
-if tokens is None:
-    print("Lexical analysis failed")
-
-if verb_flag:
-# if True:
-    print("Tokens:")
-    for token in tokens:
-        print(token)
-
-
-ast = parser.parse(tokens)
-astPrinter = ASTPrinter()
-enhancedAstPrinter = EnhancedASTPrinter()
-
-
-if ast is None:
-    print("Parsing failed")
-
-if verb_flag:
-    print("\nAST: Typeof AST:")
-    print(type(ast))
-
-if args.branch:
-    astPrinter.print_ast(ast)
-elif args.color:
-    enhancedAstPrinter.print_ast(ast)
-else:
-    pprint.pprint(ast)
-
-# print(ast.funcs)
-# print(ast.exports)
-
-validator.validate(ast)
-
-# After validation
-# if valid_flag:
-result = interpret_ast(ast, verbose=verb_flag, use_colors=color_flag)
-print(f"Program executed with result: {result}")
+        # result = interpret_ast(ast, True, True)
+        # print(result)
+if __name__ == "__main__":
+    main()

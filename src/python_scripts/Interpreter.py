@@ -2,7 +2,7 @@ from Lexer import (
     Module, Func, Param, Local, Export, Memory, Global,
     Instruction, ControlFlowInstruction, BinaryInstruction,
     _i32_const, _i32_add, _i32_sub, _i32_mul, _i32_div_s,
-    _i32_ge_u, _i32_gt_s, _i32_lt_s, _i32_clz,
+    _i32_ge_u, _i32_gt_s, _i32_lt_s, _i32_lt_u, _i32_clz,
     _local_get, _local_set, _local_tee,
     _global_get, _global_set,
     _call, _return, _nop, _block, _loop, _br, _br_if, _if,  _else, _end,
@@ -20,8 +20,8 @@ COLORS = {
     'RESET_COLOR': '\033[0m',
 }
 
-class RuntimeError(Exception):
-    # Custom runtime error
+class RuntimeError(Exception):  # Custom
+    
     def __init__(self, message, line_number=None):
         self.message = message
         self.line_number = line_number
@@ -33,13 +33,13 @@ class ExecutionContext:
         self.locals: Dict[str, Any] = {}
         self.return_value = None
         self.caller_context = caller_context
-        self.pc = 0  # Program counter for instruction sequence
+        self.pc = 0  # instruction sequence
         self.loops: Dict[str, Any] = {}
         self.ifs: Dict[str, Any] = {}
         
-        # Initialize locals with default values
+        # Initialize Default i32 value (0)
         for local in func.locals:
-            self.locals[local.name] = 0  # Default i32 value
+            self.locals[local.name] = 0  
         
     def __repr__(self):
         return f"ExecutionContext(func={self.func.name}, locals={self.locals})"
@@ -63,10 +63,8 @@ class Interpreter:
             if func.name:
                 self.functions[func.name] = func
         
-        # Initialize memory
         self.initialize_memory()
         
-        # Initialize globals
         self.initialize_globals()
     
     def _colorize(self, text: str, color_key: str) -> str:
@@ -124,14 +122,14 @@ class Interpreter:
         raise RuntimeError(f"Nothing returned in find_exported_function()")
         return None
     
-    def execute_function(self, func_: Func, args: List[Any] = None) -> Any:
+    def execute_function(self, func_name: str, args: List[Any] = None) -> Any:
         
         if args is None:
             args = []
         
         func = Func()
         for f in self.module.funcs:
-            if f.name == func_:
+            if f.name == func_name:
                 func = f
                 
         print("execute_function args: " + str(args))
@@ -160,7 +158,7 @@ class Interpreter:
             print(self._colorize(f"DEBUG: ", 'DEBUG_COLOR') + 
                   f"Executing function {func.name} with args {args}")
         
-        # Execute function body
+        # Execute  body
         try:
             result = self.execute_instructions(func.body, context)
             print("Result in execute_function : " + str(result))
@@ -256,6 +254,8 @@ class Interpreter:
             result = 1 if a > b else 0
         elif isinstance(instr, _i32_lt_s):
             result = 1 if a < b else 0
+        elif isinstance(instr, _i32_lt_u):
+            result = 1 if a < b else 0
         else:
             raise RuntimeError(f"Unsupported binary instruction: {type(instr).__name__}")
         
@@ -299,10 +299,9 @@ class Interpreter:
                     self.check_stack_size(1, instr)
                     args.insert(0, self.stack.pop())  # Reverse order for correct argument passing
                 
-                # Execute the function
                 result = self.execute_function(target_func, args)
                 
-                # Push return value if any
+                # Push result
                 if result is not None:
                     self.stack.append(result)
                 
@@ -314,7 +313,7 @@ class Interpreter:
         
         return_value = None
         if self.stack:
-            return_value = self.stack[-1]  # Return top of stack
+            return_value = self.stack[-1]  # top of stack
             if self.verbose:
                 print(self._colorize(f"DEBUG: ", 'DEBUG_COLOR') + f"Returning: {return_value}")
         return return_value
@@ -346,10 +345,10 @@ class Interpreter:
         self.check_stack_size(1, instr)
         condition = self.stack.pop()
         
-        if condition != 0:  # True condition
+        if condition != 0:  # True
             if hasattr(instr, 'operands') and instr.operands:
                 return self.execute_instructions(instr.operands, context)
-        # Else branch would be handled here if implemented
+        # TODO : Else branch 
         # raise RuntimeError(f"Nothing returned in execute_if()")
         return None
     
@@ -363,8 +362,7 @@ class Interpreter:
     def execute_loop(self, instr: _loop, context: ExecutionContext) -> Any:
         if hasattr(instr, 'name') and instr.name:
             context.loops[instr.name] = instr
-            
-        # Simple implementation - just execute the body once
+        
         if hasattr(instr, 'operands') and instr.operands:
             return self.execute_instructions(instr.operands, context)
         raise RuntimeError(f"Nothing returned in execute_loop()")
@@ -429,7 +427,7 @@ class Interpreter:
             print(self._colorize(f"DEBUG: ", 'DEBUG_COLOR') + f"Stored to memory[{address}]: {value}")
     
     def check_stack_size(self, required: int, instr: Instruction) -> None:
-        # Check if stack has enough elements for operation
+        
         if len(self.stack) < required:
             raise RuntimeError(
                 f"Stack underflow for {type(instr).__name__}: "
@@ -437,13 +435,13 @@ class Interpreter:
             )
     
     def get_result(self) -> Optional[Any]:
-        # Get the final result from stack
+        
         if self.stack:
             return self.stack[-1]
         raise RuntimeError(f"Nothing returned in get_result()")
         return None
 
-# Helper function to integrate with existing main.py
+# Helper function 
 def interpret_ast(ast: Module, verbose: bool = False, use_colors: bool = False) -> Optional[Any]:
     
     interpreter = Interpreter(ast, verbose=verbose, use_colors=use_colors)
