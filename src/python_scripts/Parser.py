@@ -461,6 +461,7 @@ class Parser:
                     print(f"Line {self.line_number}: None returned after parsing local, current token : '{self.current_token}'")
                         
                     return None
+                print(locals)
                 func.locals.extend(locals)
                 
                 if not isinstance(self.current_token, RPAREN):
@@ -701,7 +702,7 @@ class Parser:
                 print(f"Line {self.line_number}: Unexpected token '{self.current_token}', expected local type")
                 return None
         
-            return local
+            return locals
         
         if isinstance(self.current_token, TYPE):
             local.type = self.current_token.value
