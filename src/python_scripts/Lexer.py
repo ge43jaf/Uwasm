@@ -246,6 +246,10 @@ class _i32_gt_s(BinaryInstruction):
 class _i32_lt_s(BinaryInstruction):
     def __repr__(self): 
         return "_i32_lt_s"
+
+class _i32_lt_u(BinaryInstruction):
+    def __repr__(self): 
+        return "_i32_lt_u"
     
 class _i32_clz(Instruction):
     def __repr__(self): 
@@ -257,6 +261,7 @@ class _local_get(Instruction):
     # def __repr__(self):  
     #     return f"_local_get({self.value})"
     def __init__(self, op=None, operands=None):
+        # print(f"_local_get op : {op}, operands : {operands}")
         super().__init__(op, operands)
     def __repr__(self): 
         return "_local_get"
@@ -271,12 +276,13 @@ class _local_tee(Instruction): # pass
         super().__init__(op, operands)
     def __repr__(self): 
         return "_local_tee"
-class _global_get: 
+class _global_get(Instruction): 
     def __init__(self, op=None, operands=None):
+        # print(f"_global_get op : {op}, operands : {operands}")
         super().__init__(op, operands)
     def __repr__(self): 
         return "_global_get"
-class _global_set: 
+class _global_set(Instruction): 
     def __init__(self, op=None, operands=None):
         super().__init__(op, operands)
     def __repr__(self): 
@@ -383,7 +389,7 @@ WASM_INSTRUCTIONS = {
             'i32.ge_u': 0,
             'i32.gt_s': 0,
             'i32.lt_s': 0,
-            
+            'i32.lt_u': 0,
     
             'i32.clz': 0,
                 
@@ -431,6 +437,7 @@ class Lexer:
         
     def get_token_class(self, lexeme):
         if lexeme in KEYWORDS:
+            # print(f"lexeme.capitalize() : {lexeme.capitalize()}")
             return globals()[lexeme.capitalize()]
         elif lexeme in WASM_INSTRUCTIONS:
             # if lexeme == 'return':
@@ -440,6 +447,7 @@ class Lexer:
         
                 print("In WASM_INSTRUCTIONS : " + lexeme)
             # print(lexeme.replace('.', '_', 1))
+            # print(f"'_' + lexeme.replace('.', '_', 1) : {lexeme.replace('.', '_', 1)}")
             
             return globals()['_' + lexeme.replace('.', '_', 1)]
         return None
@@ -529,6 +537,9 @@ class Lexer:
                     if isinstance(token_class, _call):
                         print("callllllllllll")
                         self.tokens.append(token_class(1))
+                    elif isinstance(token_class, _global_get):
+                        print("global---------get")
+                        self.tokens.append(token_class("test"))
                     else:
                         self.tokens.append(token_class())       # Passing parameters here?
                     
