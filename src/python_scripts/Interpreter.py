@@ -37,9 +37,7 @@ class ExecutionContext:
         self.loops: Dict[str, Any] = {}
         self.ifs: Dict[str, Any] = {}
         
-        # Initialize Default i32 value (0)
-        for local in func.locals:
-            self.locals[local.name] = 0  
+ 
         
     def __repr__(self):
         return f"ExecutionContext(func={self.func.name}, locals={self.locals})"
@@ -134,7 +132,7 @@ class Interpreter:
                 
         print("execute_function args: " + str(args))
         print("execute_function name: " + str(func))
-        print("execute_function export_name: " + str(func.export_name))
+        print("execute_function export_names: " + str(func.export_names))
         print("execute_function params: " + str(func.params))
         
         print("execute_function results: " + str(func.results))
@@ -152,8 +150,28 @@ class Interpreter:
         
         # Initialize parameters as locals
         for i, param in enumerate(func.params):
-            context.locals[param.name] = args[i]
-        
+            # print(f"param : {param}")
+            if param.name is not None:
+                # print(f"param.name : {param.name}")
+                context.locals[param.name] = args[i] 
+            else:
+                
+                context.locals[i] = args[i]
+            # context.locals[param.name] = args[i]
+        # Initialize Default i32 value (0)
+        # # param & local together
+        # for param in func.params:
+        #     self.locals[param.name] = 0  
+        for i, local in enumerate(func.locals):
+            # print(f"local : {local}")
+            if local.name is not None:
+                # print(f"local.name : {local.name}")
+                context.locals[local.name] = 0 
+            else:
+                context.locals[len(func.params) + i] = 0 
+                
+        # print(f"locals : {context.locals}")
+            
         if self.verbose:
             print(self._colorize(f"DEBUG: ", 'DEBUG_COLOR') + 
                   f"Executing function {func.name} with args {args}")
@@ -268,11 +286,20 @@ class Interpreter:
         print(f"instr : {instr} with operands : {instr.operands} in execute_local_get : ")
         if hasattr(instr, 'operands') and instr.operands:
             local_name = instr.operands[0]
-            if local_name in context.locals:
+            print(f"type(local_name) : {type(local_name)}")
+            if local_name.startswith("$") and local_name in context.locals:
                 value = context.locals[local_name]
                 self.stack.append(value)
                 if self.verbose:
                     print(self._colorize(f"DEBUG: ", 'DEBUG_COLOR') + f"Pushed local {local_name}: {value}")
+            elif int(local_name) < len(context.locals):
+                print(context.locals)
+                print(list(context.locals))
+                value = context.locals[list(context.locals)[int(local_name)]]
+                self.stack.append(value)
+                if self.verbose:
+                    print(self._colorize(f"DEBUG: ", 'DEBUG_COLOR') + f"Pushed local {local_name}: {value}")
+            
             else:
                 raise RuntimeError(f"Undefined local variable: {local_name}")
     

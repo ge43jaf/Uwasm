@@ -28,12 +28,13 @@ class Memory:
         return f"Memory: {self.name} {self.value})"
    
 class Func:
-    def __init__(self, name=None, export_name = None, params=None, results=None, locals=None, body=None):
+    def __init__(self, name=None, export_names = None, params=None, results=None, locals=None,variables=None, body=None):
         self.name = name
-        self.export_name = export_name
+        self.export_names = export_names if export_names else []
         self.params = params if params else []
         self.results = results if results else []
         self.locals = locals if locals else []
+        self.variables = variables if variables else [] # Naming check for both params and locals together
         self.body = body if body else []
         
     def __repr__(self):
