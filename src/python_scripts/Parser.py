@@ -467,6 +467,10 @@ class Parser:
                     print(self._par_colorize("ERROR: ", 'ERROR_COLOR'), end="\n     ")
                     print(f"Line {self.line_number}: Unexpected token '{self.current_token}', expected parameter type")
                     return None
+                
+        elif isinstance(self.current_token, RPAREN):
+            pass    # No variable
+        
         else:
             print(self._par_colorize("ERROR: ", 'ERROR_COLOR'), end="\n     ")
             print(f"Line {self.line_number}: Unexpected token '{self.current_token}', expected parameter type")
@@ -517,6 +521,10 @@ class Parser:
                     print(self._par_colorize("ERROR: ", 'ERROR_COLOR'), end="\n     ")
                     print(f"Line {self.line_number}: Unexpected token '{self.current_token}', expected local type")
                     return None
+        
+        elif isinstance(self.current_token, RPAREN):
+            pass    # No variable
+        
         else:
             print(self._par_colorize("ERROR: ", 'ERROR_COLOR'), end="\n     ")
             print(f"Line {self.line_number}: Unexpected token '{self.current_token}', expected local type")
