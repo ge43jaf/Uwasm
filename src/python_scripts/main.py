@@ -255,7 +255,7 @@ def main():
         
         # Execute specific function or find exported function
         result = None
-        print(args.function)
+        print(f"args.function : {args.function}")
         if args.function:
             # Find the specified function
             func_to_execute = None
@@ -263,10 +263,10 @@ def main():
                 if func.name == args.function:
                     func_to_execute = func
                     break
-            # print("func_to_execute")
+            print(f"func_to_execute : {func_to_execute}")
             if func_to_execute:
                 try:
-                    result = interpreter.execute_function(func_to_execute, params)
+                    result = interpreter.execute_function(func_to_execute.name, params)
                 except Exception as e:
                     print(f"Error executing function {args.function}: {e}")
                     sys.exit(1)

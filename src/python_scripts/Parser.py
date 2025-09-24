@@ -224,6 +224,12 @@ class Parser:
                 self.parse_newline_and_space()
                     
                 if isinstance(self.current_token, Export):  
+                    if current_section and current_section != 'export':
+                        print(self._par_colorize("ERROR: ", 'ERROR_COLOR'), end="\n     ")
+                        print(f"Line {self.line_number}: Error: Exports must come before params, results, and locals")
+                        return None
+                    current_section = 'export'
+                    
                     self.next_token()
                     self.parse_newline_and_space()
                     
@@ -242,7 +248,7 @@ class Parser:
                     self.parse_newline_and_space()
                 
                 elif isinstance(self.current_token, Param):
-                    if current_section and current_section != 'param':
+                    if current_section and current_section not in ('export', 'param'):
                         print(self._par_colorize("ERROR: ", 'ERROR_COLOR'), end="\n     ")
                         print(f"Line {self.line_number}: Error: Params must come before results and locals")
                         return None
@@ -256,7 +262,7 @@ class Parser:
                     func.params.extend(params_returned)
                     
                 elif isinstance(self.current_token, Result):
-                    if current_section and current_section not in ('param', 'result'):
+                    if current_section and current_section not in ('export', 'param', 'result'):
                         print(self._par_colorize("ERROR: ", 'ERROR_COLOR'), end="\n     ") 
                         print(f"Line {self.line_number}: Error: Results must come after params and before locals")
                         return None
@@ -270,7 +276,7 @@ class Parser:
                     func.results.extend(results)
                     
                 elif isinstance(self.current_token, Local):
-                    if current_section and current_section not in ('param', 'result', 'local'):
+                    if current_section and current_section not in ('export', 'param', 'result', 'local'):
                         print(self._par_colorize("ERROR: ", 'ERROR_COLOR'), end="\n     ") 
                         print(f"Line {self.line_number}: Error: Locals must come after params and results")
                         return None
@@ -284,7 +290,7 @@ class Parser:
                     func.locals.extend(locals)
                     
                 elif isinstance(self.current_token, ControlFlowInstruction):
-                    if current_section and current_section not in ('param', 'result', 'local', 'instr'):
+                    if current_section and current_section not in ('export', 'param', 'result', 'local', 'instr'):
                         print(self._par_colorize("ERROR: ", 'ERROR_COLOR'), end="\n     ") 
                         print(f"Line {self.line_number}: Error: Instructions must come after params, results, and locals")
                         return None
@@ -615,7 +621,7 @@ class Parser:
             self.next_token()
             self.parse_newline_and_space()
             
-            op_call.operands = {operand}
+            op_call.operands = [operand]
             return op_call
             # return ControlFlowInstruction(_call, {operand})
         
@@ -813,7 +819,7 @@ class Parser:
             self.parse_newline_and_space()
             
             # return ControlFlowInstruction(_br, {operand})
-            op_br.operands = {operand}
+            op_br.operands = [operand]
             return op_br
         
         else:
@@ -1405,6 +1411,8 @@ class Parser:
         #     return None
     
     def parse_export(self):
+        print(f"Enter parse_export() : {self.current_token}")
+        
         export = Export()
         self.next_token()
         self.parse_newline_and_space()
@@ -1436,36 +1444,61 @@ class Parser:
         self.parse_newline_and_space()
         
         # print(self.current_token)
-        if not isinstance(self.current_token, Func):
-            print(self._par_colorize("ERROR: ", 'ERROR_COLOR'), end="\n     ")
-            print(f"Line {self.line_number}: Unexpected token '{self.current_token}', expected 'func' after '(' in export")
-            return None
-        
-        self.next_token()
-        self.parse_newline_and_space()
-        
-        # print(self.current_token)
-        if not isinstance(self.current_token, ID):
-            print(self._par_colorize("ERROR: ", 'ERROR_COLOR'), end="\n     ")
-            print(f"Line {self.line_number}: Unexpected token '{self.current_token}', expected function name after 'func' in export")
-            return None
-        # func_name_registered = False
-        exp_func = Func(self.current_token.value)
-        # for func in self.module.funcs:
-        #     if self.current_token.value == func.name:
-        #         func_name_registered = True
-        #         exp_func = func
-        # if not func_name_registered:
-        #     print("Function name not registered in export")
-        #     return None
+        if isinstance(self.current_token, Func):
+            self.next_token()
+            self.parse_newline_and_space()
+            
+            # print(self.current_token)
+            if not isinstance(self.current_token, ID):
+                print(self._par_colorize("ERROR: ", 'ERROR_COLOR'), end="\n     ")
+                print(f"Line {self.line_number}: Unexpected token '{self.current_token}', expected function name after 'func' in export")
+                return None
+            # func_name_registered = False
+            exp_func = Func(self.current_token.value)
+            # for func in self.module.funcs:
+            #     if self.current_token.value == func.name:
+            #         func_name_registered = True
+            #         exp_func = func
+            # if not func_name_registered:
+            #     print("Function name not registered in export")
+            #     return None
 
-        export.exp_func = exp_func
+            export.exp_func = exp_func
+            export.isFunc = True
+            
+        elif isinstance(self.current_token, Memory):
+            self.next_token()
+            self.parse_newline_and_space()
+            
+            # print(self.current_token)
+            if not isinstance(self.current_token, ID):
+                print(self._par_colorize("ERROR: ", 'ERROR_COLOR'), end="\n     ")
+                print(f"Line {self.line_number}: Unexpected token '{self.current_token}', expected function name after 'func' in export")
+                return None
+            # func_name_registered = False
+            exp_mem = Memory(self.current_token.value)
+            # for func in self.module.funcs:
+            #     if self.current_token.value == func.name:
+            #         func_name_registered = True
+            #         exp_func = func
+            # if not func_name_registered:
+            #     print("Function name not registered in export")
+            #     return None
+
+            export.exp_mem = exp_mem
+            export.isFunc = False
+            
+        else:
+            print(self._par_colorize("ERROR: ", 'ERROR_COLOR'), end="\n     ")
+            print(f"Line {self.line_number}: Unexpected token '{self.current_token}', expected 'func' or 'memory' after '(' in export")
+            return None
+        
         self.next_token()
         self.parse_newline_and_space()
         
         if not isinstance(self.current_token, RPAREN):
             print(self._par_colorize("ERROR: ", 'ERROR_COLOR'), end="\n     ")
-            print(f"Line {self.line_number}: Unexpected token '{self.current_token}', expected token ')' after function name in export")
+            print(f"Line {self.line_number}: Unexpected token '{self.current_token}', expected token ')' after function/memory name in export")
             return None
         self.next_token()
         self.parse_newline_and_space()
@@ -1475,9 +1508,13 @@ class Parser:
             print(f"Line {self.line_number}: Unexpected token '{self.current_token}', expected token ')' in export")
             return None
         
+        print(f"Before return in parse_export() : {export}")
         return export
     
     def parse_memory(self):
+        
+        print(f"Enter parse_memory() : {self.current_token}")
+        
         mem = Memory()
         self.next_token()
         self.parse_newline_and_space()
@@ -1504,6 +1541,9 @@ class Parser:
             print(self._par_colorize("ERROR: ", 'ERROR_COLOR'), end="\n     ")    
             print(f"Line {self.line_number}: Unexpected token '{self.current_token}', expected token ')' in memory")
             return None
+        
+        print(f"Before return in parse_memory() : {mem}")
+        
         return mem
 
     def parse_global(self):

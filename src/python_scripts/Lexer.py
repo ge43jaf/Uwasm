@@ -21,8 +21,9 @@ class Module:
         return f"Module:\n{mems_str}\n{globs_str}\n{funcs_str}\n{exports_str}"
         
 class Memory:
-    def __init__(self, name=None, value=None):
+    def __init__(self, name=None, export_names=None, value=None):
         self.name = name
+        self.export_names = export_names if export_names else []
         self.value = value
     def __repr__(self): 
         return f"Memory: {self.name} {self.value})"
@@ -55,12 +56,17 @@ class Func:
         return "Func:\n  " + "\n  ".join(parts)
 
 class Export:
-    def __init__(self, value=None, exp_func=Func()):
+    def __init__(self, value=None, exp_func=Func(), exp_mem=Memory(), isFunc=True):
         self.value = value
         self.exp_func = exp_func
+        self.exp_mem = exp_mem
+        self.isFunc = True
     def __repr__(self): 
-        return f"Export: ({self.value}, exp_func={self.exp_func.name})"
-
+        if self.isFunc:
+            return f"Export: ({self.value}, exp_func={self.exp_func.name})"
+        else:
+            return f"Export: ({self.value}, exp_mem={self.exp_mem.name})"
+            
 class Global:
     def __init__(self, name=None, type=None, value=None):
         self.name = name

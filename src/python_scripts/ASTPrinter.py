@@ -50,19 +50,19 @@ class ASTPrinter():
 
         children = []
         
-        # Add memories
+
         for i, mem in enumerate(module.mems):
             children.append(("Memory", mem, i == len(module.mems) - 1 and not module.funcs and not module.exports and not module.globs))
         
-        # Add globals
+
         for i, glob in enumerate(module.globs):
             children.append(("Global", glob, i == len(module.globs) - 1 and not module.funcs and not module.exports))
         
-        # Add functions
+
         for i, func in enumerate(module.funcs):
             children.append(("Function", func, i == len(module.funcs) - 1 and not module.exports))
         
-        # Add exports
+
         for i, export in enumerate(module.exports):
             children.append(("Export", export, i == len(module.exports) - 1))
         
@@ -99,19 +99,15 @@ class ASTPrinter():
 
         children = []
         
-        # Parameters
         if func.params:
             children.append(("Params", func.params, False))
         
-        # Results
         if func.results:
             children.append(("Results", func.results, False))
         
-        # Locals
         if func.locals:
             children.append(("Locals", func.locals, False))
         
-        # Body instructions
         if func.body:
             children.append(("Body", func.body, True))
         
@@ -124,9 +120,12 @@ class ASTPrinter():
     
     def _print_export(self, export, prefix, is_last, show_types):
 
-        if export.exp_func and export.exp_func.name:
-            new_prefix = prefix + (self.indent_str if is_last else self.connector_str)
+        if export.isFunc and export.exp_func and export.exp_func.name:
+            # new_prefix = prefix + (self.indent_str if is_last else self.connector_str)
             print(f"{prefix}{self.last_branch_str}Function: {export.exp_func.name}")
+        elif not export.isFunc and export.exp_mem and export.exp_mem.name:
+            # new_prefix = prefix + (self.indent_str if is_last else self.connector_str)
+            print(f"{prefix}{self.last_branch_str}Memory: {export.exp_mem.name}")
     
     
     def _print_instruction(self, instr, prefix, is_last, show_types):
@@ -157,15 +156,15 @@ class ASTPrinter():
             branch = self.last_branch_str if i == len(items) - 1 else self.branch_str
             
             if isinstance(item, (Param, Local)):
-                # Special handling for parameters and locals
+                
                 item_str = f"{item.name}: {item.type}" if hasattr(item, 'name') and hasattr(item, 'type') else str(item)
                 print(f"{prefix}{branch}{item_str}")
             elif isinstance(item, str):
-                # Simple string items (like result types)
+                # result types
                 print(f"{prefix}{branch}{item}")
             else:
-                print("type of item in body: " + str(type(item).__name__))
-                print("item in body: " + str(item))
+                # print("type of item in body: " + str(type(item).__name__))
+                # print("item in body: " + str(item))
                 # Complex items
                 print(f"{prefix}{branch}{type(item).__name__}")
                 self._print_node(item, new_prefix, i == len(items) - 1, show_types)
@@ -181,10 +180,10 @@ class ASTPrinter():
             branch = self.last_branch_str if i == len(attrs) - 1 else self.branch_str
             
             if isinstance(value, (str, int, float, bool)) or value is None:
-                # Simple values
+
                 print(f"{prefix}{branch}{key}: {value}")
             elif isinstance(value, list):
-                # Lists
+
                 if value:
                     print(f"{prefix}{branch}{key}")
                     self._print_node(value, new_prefix, i == len(attrs) - 1, show_types)
@@ -264,20 +263,20 @@ class EnhancedASTPrinter(ASTPrinter):
 
         children = []
         
-        # Add memories
+
         # print(module.mems)
         for i, mem in enumerate(module.mems):
             children.append(("Memory", mem, i == len(module.mems) - 1 and not module.funcs and not module.exports and not module.globs))
         
-        # Add globals
+
         for i, glob in enumerate(module.globs):
             children.append(("Global", glob, i == len(module.globs) - 1 and not module.funcs and not module.exports))
         
-        # Add functions
+
         for i, func in enumerate(module.funcs):
             children.append(("Function", func, i == len(module.funcs) - 1 and not module.exports))
         
-        # Add exports
+
         for i, export in enumerate(module.exports):
             children.append(("Export", export, i == len(module.exports) - 1))
         
@@ -330,20 +329,17 @@ class EnhancedASTPrinter(ASTPrinter):
     
     def _print_function_details(self, func, prefix, show_types):
 
-        # Signature line
         params = ", ".join([f"{p.name}: {self._colorize(p.type, 'Type')}" 
                            for p in func.params]) if func.params else "none"
         results = ", ".join([self._colorize(r, 'Type') for r in func.results]) if func.results else "void"
         
         print(f"{prefix}{self.branch_str}Signature: ({params}) -> {results}")
         
-        # Locals
         if func.locals:
             locals_str = ", ".join([f"{l.name}: {self._colorize(l.type, 'Type')}" 
                                   for l in func.locals])
             print(f"{prefix}{self.branch_str}Locals: {locals_str}")
         
-        # Body
         if func.body:
             print(f"{prefix}{self.last_branch_str}Body:")
             body_prefix = prefix + self.indent_str
@@ -376,7 +372,7 @@ class EnhancedASTPrinter(ASTPrinter):
                 item_str = f"{item.name}: {item.type}" if hasattr(item, 'name') and hasattr(item, 'type') else str(item)
                 print(f"{prefix}{branch}{item_str}")
             elif isinstance(item, str):
-                # Simple string items (like result types)
+                # result types
                 colored_item = self._colorize(item, 'Operand')
                 # TODO: Actually colored item here
                 print(f"{prefix}{branch}{colored_item}")
@@ -384,7 +380,7 @@ class EnhancedASTPrinter(ASTPrinter):
                 # print("type of item in body: " + str(type(item).__name__))    #TODO: Usage for Debug
                 # print("item in body: " + str(item))
                 # Complex items
-                colored_item = self._colorize(type(item).__name__, 'Instruction')
+                colored_item = self._colorize(str(item), 'Instruction')
                 if isinstance(item, (_if, _loop)):
                     name_display = item.name if item.name else "[anonymous]"
                     # print(f"{prefix}{self.last_branch_str if is_last else self.branch_str}"
@@ -399,8 +395,11 @@ class EnhancedASTPrinter(ASTPrinter):
                 #     self._print_list(item.operands, new_prefix, i == len(items) - 1, show_types)
                 # else:
                 #     self._print_node(item, new_prefix, i == len(items) - 1, show_types)
-                self._print_list(item.operands, new_prefix, i == len(items) - 1, show_types)
-                
+                if hasattr(item, 'operands') and item.operands:
+                    self._print_list(item.operands, new_prefix, i == len(items) - 1, show_types)
+                else:
+                    self._print_list([], new_prefix, i == len(items) - 1, show_types)
+                    
     def _print_operands(self, operands, prefix, show_types):
 
         if isinstance(operands, dict):

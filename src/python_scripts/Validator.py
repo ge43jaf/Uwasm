@@ -141,11 +141,11 @@ class Validator:
                         op2 = stack.pop()
                         if op1 != "i32":
                             print(self._val_colorize("ERROR: ", 'ERROR_COLOR'), end="\n     ")
-                            print(f"TypeError: op1 for BinaryInstruction {instr}")
+                            print(f"TypeError: Expected i32, found op1 type {op1} mismatch for BinaryInstruction {instr}")
                             return None
                         if op2 != "i32":
                             print(self._val_colorize("ERROR: ", 'ERROR_COLOR'), end="\n     ")
-                            print(f"TypeError: op2 for BinaryInstruction {instr}")
+                            print(f"TypeError: Expected i32, found op2 type {op2} mismatch for BinaryInstruction {instr}")
                             return None
                         stack.append("i32")
                         
@@ -235,7 +235,7 @@ class Validator:
                     # print('typeof "i32" : ' + str(type("i32")))
                     
                     print(self._val_colorize("ERROR: ", 'ERROR_COLOR'), end="\n     ")  
-                    print(f"ParameterTypeError: {param.type}, should be i32")
+                    print(f"ParameterTypeError: {param.type} type mismatch, should be i32")
                     return None
                 else:
                     pass
@@ -250,7 +250,7 @@ class Validator:
                 
                 elif local.type != "i32":
                     print(self._val_colorize("ERROR: ", 'ERROR_COLOR'), end="\n     ")  
-                    print(f"Line {self.line_number}: LocalTypeError: {local.type}, should be i32")
+                    print(f"LocalTypeError: {local.type} type mismatch, should be i32")
                     return None
                 else:
                     pass

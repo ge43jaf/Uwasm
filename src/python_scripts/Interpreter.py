@@ -1,5 +1,5 @@
 from Lexer import (
-    Module, Func, Param, Local, Export, Memory, Global,
+    Module, Func, Param, Local, Export, Memory, Global, ID,
     Instruction, ControlFlowInstruction, BinaryInstruction,
     _i32_const, _i32_add, _i32_sub, _i32_mul, _i32_div_s,
     _i32_ge_u, _i32_gt_s, _i32_lt_s, _i32_lt_u, _i32_clz,
@@ -17,6 +17,7 @@ COLORS = {
     'SUCCESS_COLOR': '\033[1;32m',
     'INFO_COLOR': '\033[1;34m',
     'DEBUG_COLOR': '\033[36m',
+    'HIGHLIGHT_COLOR': '\033[7;37m',
     'RESET_COLOR': '\033[0m',
 }
 
@@ -33,7 +34,7 @@ class ExecutionContext:
         self.locals: Dict[str, Any] = {}
         self.return_value = None
         self.caller_context = caller_context
-        self.pc = 0  # instruction sequence
+        self.pc = 0
         self.loops: Dict[str, Any] = {}
         self.ifs: Dict[str, Any] = {}
         
@@ -57,6 +58,8 @@ class Interpreter:
         
         # Function lookup table
         self.functions: Dict[str, Func] = {}
+        
+        print(f"Init Interpreter : {module.funcs}")
         for func in module.funcs:
             if func.name:
                 self.functions[func.name] = func
@@ -316,23 +319,43 @@ class Interpreter:
     
     def execute_call(self, instr: _call, context: ExecutionContext) -> Any:
         
+        if context.pc < 0:
+            return
+        
         if hasattr(instr, 'operands') and instr.operands:
             func_name = instr.operands[0]
-            if func_name in self.functions:
+            print(self._colorize(f"func_name : ", 'ERROR_COLOR') + f"[{func_name}]")
+            
+            func_index = None
+            for i, func_id in enumerate(self.functions):
+                # print(self._colorize(f"func_id : ", 'ERROR_COLOR') + f"[{func_id}]")
+                
+                if func_name.value == func_id:
+                    func_index = i
+            if func_index is not None:
                 # Prepare arguments from stack
-                target_func = self.functions[func_name]
+                target_func = self.functions[func_name.value]
                 args = []
                 for _ in range(len(target_func.params)):
                     self.check_stack_size(1, instr)
                     args.insert(0, self.stack.pop())  # Reverse order for correct argument passing
                 
-                result = self.execute_function(target_func, args)
+                result = self.execute_function(target_func.name, args)
+                ++context.pc
                 
                 # Push result
                 if result is not None:
                     self.stack.append(result)
                 
                 return result
+            elif isinstance(func_name, ID) and func_name.value == "$log":
+                self.check_stack_size(1, _call)
+                value = self.stack.pop()
+                print(self._colorize(f"INFO: ", 'INFO_COLOR'))
+                print(f"Log value : {value}")
+                
+                ++context.pc
+                
             else:
                 raise RuntimeError(f"Undefined function: {func_name}")
     
@@ -343,6 +366,7 @@ class Interpreter:
             return_value = self.stack[-1]  # top of stack
             if self.verbose:
                 print(self._colorize(f"DEBUG: ", 'DEBUG_COLOR') + f"Returning: {return_value}")
+        --context.pc
         return return_value
     
     def execute_nop(self) -> None:
@@ -372,9 +396,34 @@ class Interpreter:
         self.check_stack_size(1, instr)
         condition = self.stack.pop()
         
+        print(f"isntr.operands : {instr.operands}")
+        
+        else_index = None
+        for i, operand in enumerate(instr.operands):
+            if isinstance(operand, _else):
+                print("_else() in instr.operands")
+                else_index = i
+                print(f"i : {i}")
+        
+        if_else_operands = []
+        else_end_operands = []
+        
+        if hasattr(instr, 'operands') and instr.operands:
+            if_else_operands = instr.operands
+            
+        if else_index is not None:
+            if_else_operands = instr.operands[0:else_index]
+            print(f"if_else_operands : {if_else_operands}")
+            else_end_operands = instr.operands[else_index+1:len(instr.operands)]
+            print(f"else_end_operands : {else_end_operands}")
+        
         if condition != 0:  # True
-            if hasattr(instr, 'operands') and instr.operands:
-                return self.execute_instructions(instr.operands, context)
+            return self.execute_instructions(if_else_operands, context)
+        else:
+            return self.execute_instructions(else_end_operands, context)
+            
+        
+        
         # TODO : Else branch 
         # raise RuntimeError(f"Nothing returned in execute_if()")
         return None
@@ -397,6 +446,28 @@ class Interpreter:
     
     def execute_br(self, instr: _br, context: ExecutionContext) -> Any:
         # TODO (simplified)
+        
+        if context.pc < 0:
+            return
+        
+        if hasattr(instr, 'operands') and instr.operands:
+            label_name = instr.operands[0]
+            print(self._colorize(f"label_name : ", 'ERROR_COLOR') + f"[{label_name}]")
+             
+            
+            if isinstance(label_name, ID):
+                # self.check_stack_size(1, _call)
+                # value = self.stack.pop()
+                # print(self._colorize(f"INFO: ", 'INFO_COLOR'))
+                # print(f"Log value : {value}")
+                
+                # ++context.pc
+                print(f"label name in execute_br() : {label_name}")
+                return
+            else:
+                raise RuntimeError(f"Undefined label: {label_name}")
+        
+        
         if self.verbose:
             print(self._colorize(f"DEBUG: ", 'DEBUG_COLOR') + "BR instruction executed (no-op in simple interpreter)")
         raise RuntimeError(f"Nothing returned in execute_br()")
@@ -433,7 +504,10 @@ class Interpreter:
         # Read 4 bytes from memory
         value = int.from_bytes(self.memory[address:address+4], 'little', signed=True)
         self.stack.append(value)
+        print(self._colorize("INFO: ", 'HIGHLIGHT_COLOR') + f"memory : {self.memory[0:30]}")
         
+        print(self._colorize("INFO: ", 'HIGHLIGHT_COLOR') + f"value : {value}")
+
         if self.verbose:
             print(self._colorize(f"DEBUG: ", 'DEBUG_COLOR') + f"Loaded from memory[{address}]: {value}")
     
@@ -449,6 +523,7 @@ class Interpreter:
         
         # Store 4 bytes to memory
         self.memory[address:address+4] = value.to_bytes(4, 'little', signed=True)
+        print(self._colorize("INFO: ", 'HIGHLIGHT_COLOR') + f"self.memory[address:address+4] : {self.memory[address:address+4]}")
         
         if self.verbose:
             print(self._colorize(f"DEBUG: ", 'DEBUG_COLOR') + f"Stored to memory[{address}]: {value}")
