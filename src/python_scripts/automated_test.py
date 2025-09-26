@@ -8,7 +8,7 @@ import statistics
 import os
 import json
 from typing import List, Dict, Tuple
-import psutil  # For memory monitoring
+import psutil
 
 def get_peak_memory(program: str) -> float:
     """Run a program and return peak memory usage in MB"""
@@ -36,14 +36,13 @@ def run_program(program: str, test_file: str, runs: int = 5) -> Tuple[List[float
     memory_usages = []
     
     for _ in range(runs):
-        # Time measurement
+
         start = time.perf_counter()
         subprocess.run(f"{program} {test_file}", shell=True, check=True, 
                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         end = time.perf_counter()
-        times.append((end - start) * 1000)  # Convert to milliseconds
-        
-        # Memory measurement
+        times.append((end - start) * 1000)
+
         memory_usage = get_peak_memory(f"{program} {test_file}")
         memory_usages.append(memory_usage)
     
@@ -69,8 +68,7 @@ def benchmark_programs(programs: Dict[str, str], test_dir: str, runs: int = 5) -
     """Benchmark multiple programs with categorized test files"""
     results = {prog_name: {"categories": {}, "individual": {}} for prog_name in programs.keys()}
     test_files = [f for f in os.listdir(test_dir) if f.endswith('.wat') or f.endswith('.wasm')]
-    
-    # Group test files by category
+
     categorized_files = {}
     for test_file in test_files:
         category = categorize_test_file(test_file)
@@ -82,8 +80,7 @@ def benchmark_programs(programs: Dict[str, str], test_dir: str, runs: int = 5) -
     
     for prog_name, prog_cmd in programs.items():
         print(f"\nBenchmarking: {prog_name}")
-        
-        # Benchmark individual test files
+
         for category, files in categorized_files.items():
             print(f"  Category: {category}")
             category_times = []
@@ -109,8 +106,7 @@ def benchmark_programs(programs: Dict[str, str], test_dir: str, runs: int = 5) -
                 except subprocess.CalledProcessError:
                     print(f"Failed to run {test_file}")
                     continue
-            
-            # Calculate category averages
+
             if category_times:
                 results[prog_name]["categories"][category] = {
                     "avg_time": statistics.mean(category_times),
@@ -131,11 +127,10 @@ def generate_latex_table(results: Dict[str, Dict[str, Dict]]) -> str:
 \\label{tab:runtime-comparison}
 \\begin{tabular}{lccc}
 \\toprule
-\\textbf{Benchmark} & \\textbf{This Interpreter} & \\textbf{wat2wasm} & \\textbf{Wasmtime} \\\\
+\\textbf{Benchmark} & \\textbf{Uwasm} & \\textbf{wat2wasm} & \\textbf{Wasmtime} \\\\
 \\midrule
 """
     
-    # Add timing results for each category
     for category in categories:
         if category in results[programs[0]]["categories"]:
             row = f"{category} (ms)    & "
@@ -148,12 +143,11 @@ def generate_latex_table(results: Dict[str, Dict[str, Dict]]) -> str:
                     row_parts.append("N/A")
             row += "  & ".join(row_parts) + "  \\\\\n"
             latex_table += row
-    
-    # Add memory results
+
     latex_table += "\\midrule\nPeak Memory (MB)   & "
     memory_parts = []
     for prog_name in programs:
-        # Calculate average memory across all categories
+
         memories = [cat_data["avg_memory"] for cat_data in results[prog_name]["categories"].values()]
         if memories:
             avg_memory = statistics.mean(memories)
@@ -177,8 +171,7 @@ def plot_results(results: Dict[str, Dict[str, Dict]]):
     
     programs = list(results.keys())
     categories = ["Arithmetic", "Control Flow", "Memory Ops", "Variable Instructions"]
-    
-    # Category comparison plot
+
     plt.figure(figsize=(12, 8))
     
     x = np.arange(len(categories))
@@ -203,12 +196,11 @@ def plot_results(results: Dict[str, Dict[str, Dict]]):
     plt.savefig("category_comparison.png", dpi=150, bbox_inches='tight')
     plt.close()
     
-    # Memory usage plot
     plt.figure(figsize=(10, 6))
     
     memories = []
     for prog_name in programs:
-        # Calculate average memory across all categories
+
         mem_vals = [cat_data["avg_memory"] for cat_data in results[prog_name]["categories"].values()]
         memories.append(statistics.mean(mem_vals) if mem_vals else 0)
     
@@ -236,10 +228,9 @@ def main():
                        help="Output LaTeX table filename")
     
     args = parser.parse_args()
-    
-    # Define programs to benchmark
+
     programs = {
-        "This Interpreter": "python3 main.py",
+        "Uwasm": "python3 main.py",
         "wat2wasm": "wat2wasm",
         "Wasmtime": "wasmtime"
     }
@@ -253,24 +244,20 @@ def main():
         return
     
     results = benchmark_programs(programs, args.test_dir, args.runs)
-    
-    # Generate LaTeX table
+
     latex_table = generate_latex_table(results)
     with open(args.output, 'w') as f:
         f.write(latex_table)
-    
-    # Generate plots
+
     plot_results(results)
-    
-    # Save detailed results
+
     save_detailed_results(results)
     
     print(f"\nBenchmark completed!")
     print(f"LaTeX table saved as: {args.output}")
     print(f"Plots saved as: category_comparison.png and memory_comparison.png")
     print(f"Detailed results saved as: detailed_results.json")
-    
-    # Print summary
+
     print("\n" + "="*50)
     print("SUMMARY RESULTS:")
     print("="*50)
