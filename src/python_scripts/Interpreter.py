@@ -59,7 +59,7 @@ class Interpreter:
         # Function lookup table
         self.functions: Dict[str, Func] = {}
         
-        print(f"Init Interpreter : {module.funcs}")
+        # print(f"Init Interpreter : {module.funcs}")
         for func in module.funcs:
             if func.name:
                 self.functions[func.name] = func
@@ -134,7 +134,7 @@ class Interpreter:
                 func = f
                 
         print("execute_function args: " + str(args))
-        print("execute_function name: " + str(func))
+        print("execute_function name: " + str(func.name))
         print("execute_function export_names: " + str(func.export_names))
         print("execute_function params: " + str(func.params))
         
@@ -396,7 +396,7 @@ class Interpreter:
         self.check_stack_size(1, instr)
         condition = self.stack.pop()
         
-        print(f"isntr.operands : {instr.operands}")
+        print(f"instr.operands : {instr.operands}")
         
         else_index = None
         for i, operand in enumerate(instr.operands):

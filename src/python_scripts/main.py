@@ -80,17 +80,17 @@ parser_arg.add_argument(
     '--params',
     type=str,
     default="",
-    help="Function parameters as JSON array, e.g., '[1, 2, 3]'"
+    help="Function parameters as a string array, e.g., '1 2 3'"
 )
 
-parser_arg.add_argument(
-    '-o',
-    '--output',
-    type=str,
-    choices=['text', 'json', 'quiet'],
-    default='text',
-    help="Output format for results"
-)
+# parser_arg.add_argument(
+#     '-o',
+#     '--output',
+#     type=str,
+#     choices=['text', 'json', 'quiet'],
+#     default='text',
+#     help="Output format for results"
+# )
 
 parser_arg.add_argument('file', type=argparse.FileType('r'), nargs='?', help="Input .wat file")
 
@@ -308,7 +308,7 @@ def main():
             print(f"Memory size: {len(interpreter.memory)} bytes")
 
         
-        print("Stack : " + str(interpreter.stack))
+        print("Interpreter stack : " + str(interpreter.stack))
         print("✓ Interpretation completed")
 
         # result = interpret_ast(ast, True, True)
