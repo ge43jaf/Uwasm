@@ -83,14 +83,14 @@ parser_arg.add_argument(
     help="Function parameters as a string array, e.g., '1 2 3'"
 )
 
-# parser_arg.add_argument(
-#     '-o',
-#     '--output',
-#     type=str,
-#     choices=['text', 'json', 'quiet'],
-#     default='text',
-#     help="Output format for results"
-# )
+parser_arg.add_argument(
+    '-o',
+    '--output',
+    type=str,
+    choices=['text', 'json', 'quiet'],
+    default='text',
+    help="Output format for results"
+)
 
 parser_arg.add_argument('file', type=argparse.FileType('r'), nargs='?', help="Input .wat file")
 
