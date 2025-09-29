@@ -47,11 +47,11 @@ Uwasm is a command-line program that supports the following arguments, implement
 
     -h, --help: Shows the help message.
     -t, --test: Executes all test cases.
-    -a, -{}-ast}: Outputs the AST for a given WAT file.
-    -d, -{}-debug}: Enables verbose logging (planned feature).
-    -v, -{}-validate}: Validate the programm based on the generated AST.
-    -b, -{}-branch}: Generate AST with branch structure.
-    -c, -{}-color}: Generate AST with branch and colorized keywords.
+    -a, --ast: Outputs the AST for a given WAT file.
+    -d, --debug: Enables verbose logging (planned feature).
+    -v, --validate: Validate the programm based on the generated AST.
+    -b, --branch: Generate AST with branch structure.
+    -c, --color: Generate AST with branch and colorized keywords.
     -i, --interpret:       Interpret the WebAssembly program.
     -F FUNCTION, --function FUNCTION:       Pass name of the function to execute.
     -p PARAMS, --params PARAMS:  Pass function parameters as a string array, e.g. ``1 2 3''.
@@ -71,7 +71,10 @@ one of the abstract syntax trees shown in Figure~\ref{fig:awesome_image1}, Figur
             )
 ```
 
+AST generated when using the **-a** flag             |  AST generated when using the **-b** flag  | AST generated when using the **-c** flag 
+:-------------------------:|:-------------------------:|:---
+![](/images/--a.png)  |  ![](/images/--b.png) | ![](/images/--c.png)
 
-![](/images/--a.png)
-![](/images/--b.png)
-![](/images/--c.png)
+
+
+
