@@ -14,8 +14,6 @@ verb_flag = False
 valid_flag = False
 color_flag = False
 
-# ... (keep your existing imports and setup code) ...
-
 parser_arg = argparse.ArgumentParser(description="An interpreter for WASM")
 
 parser_arg.add_argument(
@@ -136,7 +134,6 @@ def main():
     
     args = parser_arg.parse_args()
     
-    # Set flags based on arguments
     if args.debug:
         verb_flag = True
     if args.validate:
@@ -144,18 +141,15 @@ def main():
     if args.color:
         color_flag = True
     
-    # Handle test mode
     if args.test:
         run_tests()
         return
     
-    # Check if file was provided
     if not args.file:
         print("Error: No input file specified")
         parser_arg.print_help()
         sys.exit(1)
     
-    # Read and process the file
     try:
         wat_code = args.file.read()
         args.file.close()
@@ -201,7 +195,6 @@ def main():
         print("Parsing failed")
         sys.exit(1)
     
-    # AST Printing
     if args.ast or args.branch or args.color:
         astPrinter = ASTPrinter()
         enhancedAstPrinter = EnhancedASTPrinter()
@@ -234,7 +227,6 @@ def main():
     if args.interpret:
         print("\n=== INTERPRETATION ===")
         
-        # Parse function parameters
         params = []
         if args.params:
             params = args.params.split()

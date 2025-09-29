@@ -151,11 +151,11 @@ class Parser:
                     self.module.mems.append(mem)
                     # print(f"test_mem : {mem}")
 
-                # TODO : before or after function definition?
+                # DONE : before or after function definition?
                 elif isinstance(self.current_token, Global):    # Can only be surrounded by (...)
 
                     glob = self.parse_global()
-                    if glob is None :   #TODO: Error message
+                    if glob is None :   #DONE: Error message
                         print(self._par_colorize("ERROR: ", 'ERROR_COLOR'), end="\n     ")
                         print(f"Line {self.line_number}: None returned after parsing global, current token : '{self.current_token}'")
                         return None
@@ -201,7 +201,7 @@ class Parser:
             func.name = self.current_token.value
             self.next_token()
             self.parse_newline_and_space()
-        # TODO: Parse params ... first, then instructions check
+        # DONE: Parse params ... first, then instructions check
         current_section = None
         
         export_flag = False
@@ -321,7 +321,7 @@ class Parser:
                     if self.par_verb_flag:
                         print(self._par_colorize(f"Line {self.line_number}: ", 'DEBUG_COLOR'), end="     ")
                         
-                        print('func (...) (...) (... ' + str(type(self.current_token))) #TODO: MOdification
+                        print('func (...) (...) (... ' + str(type(self.current_token))) #DONE: MOdification
                     instr = self.parse_instruction()
                     if instr is None:
                         print(self._par_colorize("ERROR: ", 'ERROR_COLOR'), end="\n     ")

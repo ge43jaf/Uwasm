@@ -347,10 +347,10 @@ class EnhancedASTPrinter(ASTPrinter):
             self._print_list(func.body, body_prefix, True, show_types)
 
     def _print_instruction(self, instr, prefix, is_last, show_types):
-        # print("op : " + str(instr.op) + " operands : " + str(instr.operands)) #TODO: Usage for Debug
+        # print("op : " + str(instr.op) + " operands : " + str(instr.operands)) #DONE: Usage for Debug
         # instr_name = getattr(instr, 'op', type(instr).__name__)
         instr_name = type(instr).__name__
-        # print(instr_name) #TODO: Usage for Debug
+        # print(instr_name) #DONE: Usage for Debug
         colored_instr = self._colorize(instr_name, 'Instruction')
         
         if hasattr(instr, 'operands') and instr.operands:
@@ -377,7 +377,7 @@ class EnhancedASTPrinter(ASTPrinter):
                 # TODO: Actually colored item here
                 print(f"{prefix}{branch}{colored_item}")
             else:
-                # print("type of item in body: " + str(type(item).__name__))    #TODO: Usage for Debug
+                # print("type of item in body: " + str(type(item).__name__))    #DONE: Usage for Debug
                 # print("item in body: " + str(item))
                 # Complex items
                 colored_item = self._colorize(str(item), 'Instruction')
